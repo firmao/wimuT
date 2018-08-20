@@ -1,0 +1,96 @@
+<!--
+    This file is part of SQUIN and it falls under the
+    copyright as specified for the whole SQUIN package.
+-->
+<project name="SQUIN" default="dist" basedir=".">
+	<description>
+		SQUIN
+	</description>
+
+	<!-- ================================================================
+	     Read property files
+	================================================================= -->
+	<property file="${basedir}/build.properties.user"/>
+	<property file="${basedir}/build.properties"/>
+
+	 <!-- ================================================================
+	      Define search path
+	 ================================================================= -->
+	<path id="classpath:build">
+		<fileset dir="${dir.ARQ.lib}" includes="**/*.jar"/>
+		<fileset dir="${dir.Tomcat.lib}" includes="**/*.jar"/>
+
+	</path>
+
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp/>
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${dir.build.classes}"/>
+		<echo file="${file.Version.java}" append="false">package org.squin;
+public class Version { final static public String squinVersion = "${version}"; }</echo>
+	</target>
+
+	<target name="compile" depends="init"
+	        description="compile the sources" >
+		<!-- Compile the java code from ${dir.src.java} into ${dir.build.classes} -->
+		<javac  source="1.5" deprecation="false" debug="true"
+		        classpathref="classpath:build" excludes="${excludes}"
+		        srcdir="${dir.src.java}" destdir="${dir.build.classes}">
+			<compilerarg value="-Xlint:unchecked"/>
+			<compilerarg value="-Xlint:deprecation"/>
+		</javac>
+	</target>
+
+	<target name="dist" depends="compile"
+	        description="generate the distribution" >
+		<!-- Create the distribution directory -->
+		<mkdir dir="${dir.build.dist}${file.separator}lib"/>
+		<!-- Create the JAR file in the distribution directory -->
+		<jar jarfile="${dir.build.dist}${file.separator}lib${file.separator}${file.jar}" basedir="${dir.build.classes}"/>
+		<!-- Copy the JAR file to the webapp -->
+		<copy file="${dir.build.dist}${file.separator}lib${file.separator}${file.jar}" toDir="${dir.webapp.base}${file.separator}WEB-INF${file.separator}lib"/>
+	</target>
+
+	<target name="javadoc">
+		<delete dir="${dir.build.docs}"/>
+		<mkdir dir="${dir.build.docs}"/>
+		<javadoc packagenames="*"
+				sourcepath="${dir.src.java}"
+				destdir="${dir.build.docs}"
+				classpathref="classpath:build"
+				author="true"
+				version="true"
+				private="false"
+				use="true"
+				splitindex="true"
+				windowtitle="SQUIN API (v.${version})"
+				doctitle="SQUIN API (v.${version})">
+			<link href="http://jena.sourceforge.net/javadoc/"/>
+			<link href="http://jena.sourceforge.net/ARQ/javadoc/"/>
+			<link href="http://download.oracle.com/javase/1.5.0/docs/api/"/>
+			<link href="http://download.oracle.com/javaee/5/api/"/>
+		</javadoc>
+	</target>
+
+	<target name="zip" depends="dist,javadoc">
+		<!-- Creates a release zip file containing sources, tests,
+			 docs (includig javadoc), the jar file, required jars,
+			 and the build file. -->
+		<zip destfile="${file.zip}"
+			 basedir="${basedir}"
+			 includes="${dir.build.docs}/** ${dir.src.base}/** ${dir.webapp.base}/** ${dir.build.dist}/** bin/** build.xml build.properties COPYRIGHT.txt LICENSE-APACHE-2.0.txt README.txt CHANGES.txt"/>
+	</target>
+
+	<target name="clean"
+	        description="clean up" >
+
+		<delete dir="${dir.build.classes}"/>
+		<delete dir="${dir.build.docs}"/>
+		<delete dir="${dir.build.dist}"/>
+		<delete file="${dir.webapp.base}${file.separator}WEB-INF${file.separator}lib${file.separator}${file.jar}"/>
+		<delete file="${file.zip}" failonerror="false"/>
+		<delete file="${file.Version.java}" failonerror="false"/>
+	</target>
+
+</project>

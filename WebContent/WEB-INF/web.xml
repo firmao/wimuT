@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:web="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  <display-name>Semantic Web Query Interface</display-name>
+  <servlet>
+    <servlet-name>SQUIN Processor</servlet-name>
+    <servlet-class>org.squin.servlet.DirectResultRequestServlet</servlet-class>
+    <servlet-name>SQUIN WIMU</servlet-name>
+    <servlet-class>org.wimu.datasetselection.WimuServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SQUIN Processor</servlet-name>
+    <url-pattern>/query</url-pattern>
+    <servlet-name>SQUIN WIMU</servlet-name>
+    <url-pattern>/querywimu</url-pattern>
+  </servlet-mapping>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>wimuindex.html</welcome-file>
+  </welcome-file-list>
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>SQUIN</web-resource-name>
+      <url-pattern>/*</url-pattern>
+      <http-method>GET</http-method>
+      <http-method>POST</http-method>
+    </web-resource-collection>
+  </security-constraint>
+  <env-entry>
+    <description>Directory that contains RDF documents which have to be loaded on startup.</description>
+    <env-entry-name>InitialFilesDirectory</env-entry-name>
+    <env-entry-type>java.lang.String</env-entry-type>
+    <env-entry-value>data</env-entry-value>
+  </env-entry>
+  <env-entry>
+    <description>Path to squin configuration file.</description>
+    <env-entry-name>ConfigFileLocation</env-entry-name>
+    <env-entry-type>java.lang.String</env-entry-type>
+    <env-entry-value>squin.properties</env-entry-value>
+  </env-entry>
+</web-app>
