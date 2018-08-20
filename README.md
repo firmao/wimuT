@@ -1,0 +1,2 @@
+# wimuT
+SQUIN extension
