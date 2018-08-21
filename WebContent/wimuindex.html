@@ -28,6 +28,15 @@
 		else if ( idx == 4 ) {
 			q = "SELECT DISTINCT ?s ?p	WHERE { <http://wordnet.rkbexplorer.com/id/wordsense-mess_around-verb-1> ?s ?p }";
 		}
+		else if ( idx == 5 ) {
+			q = "SELECT DISTINCT ?s ?p	WHERE { <http://dbpedia.org/resource/Leipzig> ?s ?p }";
+		}
+		else if ( idx == 6 ) {
+			q = "SELECT DISTINCT ?s ?p	WHERE { <http://dbpedia.org/resource/Berlin> ?s ?p }";
+		}
+		else if ( idx == 7 ) {
+			q = "SELECT DISTINCT ?s ?p	WHERE { <http://citeseer.rkbexplorer.com/id/resource-CS116606> ?s ?p }";
+		}
 		if ( q != null ) {
 			document.getElementById("queryForm").query.value = q;
 		}
@@ -42,13 +51,16 @@
 	<p>Enter your SPARQL query in the textbox below.</p>
 		<div style="margin-left:5%">
 			Sample queries:
-			<ul style="margin-top:0px">
+			<ol style="margin-top:0px">
 				<li><a href="javascript:selectQuery(0);">HDT 1</a></li>
 				<li><a href="javascript:selectQuery(1);">HDT 2</a></li>
 				<li><a href="javascript:selectQuery(2);">SPARQL EndPoint</a></li>
 				<li><a href="javascript:selectQuery(3);">WIMU CBD</a></li>
 				<li><a href="javascript:selectQuery(4);">HDT 3</a></li>
-			</ul>
+				<li><a href="javascript:selectQuery(5);">SQUIN 1</a></li>
+				<li><a href="javascript:selectQuery(6);">SQUIN 2</a></li>
+				<li><a href="javascript:selectQuery(7);">HDT 4</a></li>
+			</ol>
 		</div>
 	<form id="queryForm" action="querywimu" method="get">
 		
