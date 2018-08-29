@@ -64,17 +64,23 @@ public class WimuServlet extends Servlet {
 						resp.getOutputStream().println("<!DOCTYPE html>");
 						resp.getOutputStream().println("<html>");
 						resp.getOutputStream().println("<body>");
-						resp.getOutputStream().println("Dataset not compatible with SPARQL:<br>"+query+"<br><br>");
-						resp.getOutputStream().println("You can generate the CBD from the URIs using <a href='http://wimu.aksw.org/'>wimu.aksw.org</a>");
+						resp.getOutputStream().println(
+								"Dataset not compatible with SPARQL: <br><textarea name='txtQuery' id='txtQuery' rows='8' cols='80'>"
+										+ query + "</textarea><br><br>");
+						resp.getOutputStream().println(
+								"You can generate the CBD from the URIs using <a href='http://wimu.aksw.org/'>wimu.aksw.org</a>");
 						resp.getOutputStream().println("</body>");
 						resp.getOutputStream().println("</html>");
 						resp.flushBuffer();
-					}else if(!dataset.toLowerCase().contains("hdt")){
+					} else if (!dataset.toLowerCase().contains("hdt")) {
 						resp.getOutputStream().println("<!DOCTYPE html>");
 						resp.getOutputStream().println("<html>");
 						resp.getOutputStream().println("<body>");
 						resp.getOutputStream().println("Dataset is not an HDT file<br>");
-						resp.getOutputStream().println("Please execute the query:<br>"+query+"<br><br> at <a href='"+dataset+"'>"+dataset+"</a>");
+						resp.getOutputStream().println(
+								"Please execute the query:<br><textarea name='txtQuery' id='txtQuery' rows='8' cols='80'>"
+										+ query + "</textarea><br><br> at <a href='" + dataset + "'>" + dataset
+										+ "</a>");
 						resp.getOutputStream().println("</body>");
 						resp.getOutputStream().println("</html>");
 						resp.flushBuffer();
@@ -84,6 +90,33 @@ public class WimuServlet extends Servlet {
 					}
 				}
 			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		} else if (req.getParameter("chkAllQueries") != null) {
+			try {
+				Set<String> setQueries = Util.getSampleQueries();
+				Set<WimuTQuery> res = Util.executeAllQueries(setQueries);
+				resp.getOutputStream().println("<!DOCTYPE html>");
+				resp.getOutputStream().println("<html>");
+				resp.getOutputStream().println("<body>");
+				resp.getOutputStream().println(Util.getTopTable());
+				int indQ = 0;
+				for (WimuTQuery wQuery : res) {
+					resp.getOutputStream().println("<tr>");
+					resp.getOutputStream().println("<td class=\"tg-88nc\">"+(++indQ)+"</td>");
+					resp.getOutputStream().println("<td class=\"tg-uys7\">"+wQuery.getTimeWimu()+"</td>");
+					resp.getOutputStream().println("<td class=\"tg-uys7\">"+wQuery.getTimeSquin()+"</td>");
+					resp.getOutputStream().println("<td class=\"tg-c3ow\">"+wQuery.hasResultsWimu()+"</td>");
+					resp.getOutputStream().println("<td class=\"tg-c3ow\">"+wQuery.hasResultsSquin()+"</td>");
+					resp.getOutputStream().println("<td class=\"tg-c3ow\">"+wQuery.getDatasetWimu()+"</td>");
+					resp.getOutputStream().println("<td class=\"tg-c3ow\"><textarea>"+wQuery.getQuery()+"</textarea></td>");
+					resp.getOutputStream().println("</tr>");
+				}
+				resp.getOutputStream().println(Util.getEndTable());
+				resp.getOutputStream().println("</body>");
+				resp.getOutputStream().println("</html>");
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			return;

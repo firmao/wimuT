@@ -119,6 +119,11 @@ public class WimuSelection {
 			if (!file.exists()) {
 				FileUtils.copyURLToFile(url, file);
 			}
+			long limSize = 5000000; // 5 MB
+			if(file.length() > limSize){
+				System.out.println("File: "+file.getAbsolutePath()+" is bigger than " + limSize + " bytes");
+				return null;
+			}
 			file = unconpress(file);
 			long total = System.currentTimeMillis() - start;
 			System.out.println("Time to download dataset: " + total + "ms");
@@ -132,48 +137,48 @@ public class WimuSelection {
 			org.apache.jena.sparql.engine.QueryExecutionBase qe = null;
 			org.apache.jena.query.ResultSet resultSet = null;
 			/* First check the IRI file extension */
-//			if (file.getName().toLowerCase().endsWith(".ntriples") || file.getName().toLowerCase().endsWith(".nt")) {
-//				System.out.println("# Reading a N-Triples file...");
-//				model.read(file.getAbsolutePath(), "N-TRIPLE");
-//				qe = (org.apache.jena.sparql.engine.QueryExecutionBase) QueryExecutionFactory.create(cSparql, model);
-//				resultSet = qe.execSelect();
-//			} else if (file.getName().toLowerCase().endsWith(".n3")) {
-//				System.out.println("# Reading a Notation3 (N3) file...");
-//				model.read(file.getAbsolutePath());
-//				qe = (org.apache.jena.sparql.engine.QueryExecutionBase) QueryExecutionFactory.create(cSparql, model);
-//				resultSet = qe.execSelect();
-//			} else if (file.getName().toLowerCase().endsWith(".json") || file.getName().toLowerCase().endsWith(".jsod")
-//					|| file.getName().toLowerCase().endsWith(".jsonld")) {
-//				System.out.println("# Trying to read a 'json-ld' file...");
-//				model.read(file.getAbsolutePath(), "JSON-LD");
-//				qe = (org.apache.jena.sparql.engine.QueryExecutionBase) QueryExecutionFactory.create(cSparql, model);
-//				resultSet = qe.execSelect();
-//			} else {
-//				String contentType = getContentType(dataset); // get the IRI
-//																// content type
-//				System.out.println("# IRI Content Type: " + contentType);
-//				if (contentType.contains("application/ld+json") || contentType.contains("application/json")
-//						|| contentType.contains("application/json+ld")) {
-//					System.out.println("# Trying to read a 'json-ld' file...");
-//					model.read(file.getAbsolutePath(), "JSON-LD");
-//					qe = (org.apache.jena.sparql.engine.QueryExecutionBase) org.apache.jena.query.QueryExecutionFactory.create(cSparql, model);
-//					resultSet = qe.execSelect();
-//				} else if (contentType.contains("application/n-triples")) {
-//					System.out.println("# Reading a N-Triples file...");
-//					model.read(file.getAbsolutePath(), "N-TRIPLE");
-//					qe = (QueryExecutionBase) QueryExecutionFactory.create(cSparql, model);
-//					resultSet = qe.execSelect();
-//				} else if (contentType.contains("text/n3")) {
-//					System.out.println("# Reading a Notation3 (N3) file...");
-//					model.read(file.getAbsolutePath());
-//					qe = (QueryExecutionBase) QueryExecutionFactory.create(cSparql, model);
-//					resultSet = qe.execSelect();
-//				} else {
-//					model.read(file.getAbsolutePath());
-//					qe = (QueryExecutionBase) QueryExecutionFactory.create(cSparql, model);
-//					resultSet = qe.execSelect();
-//				}
-//			}
+			if (file.getName().toLowerCase().endsWith(".ntriples") || file.getName().toLowerCase().endsWith(".nt")) {
+				System.out.println("# Reading a N-Triples file...");
+				model.read(file.getAbsolutePath(), "N-TRIPLE");
+				qe = (org.apache.jena.sparql.engine.QueryExecutionBase) org.apache.jena.query.QueryExecutionFactory.create(cSparql, model);
+				resultSet = qe.execSelect();
+			} else if (file.getName().toLowerCase().endsWith(".n3")) {
+				System.out.println("# Reading a Notation3 (N3) file...");
+				model.read(file.getAbsolutePath());
+				qe = (org.apache.jena.sparql.engine.QueryExecutionBase) org.apache.jena.query.QueryExecutionFactory.create(cSparql, model);
+				resultSet = qe.execSelect();
+			} else if (file.getName().toLowerCase().endsWith(".json") || file.getName().toLowerCase().endsWith(".jsod")
+					|| file.getName().toLowerCase().endsWith(".jsonld")) {
+				System.out.println("# Trying to read a 'json-ld' file...");
+				model.read(file.getAbsolutePath(), "JSON-LD");
+				qe = (org.apache.jena.sparql.engine.QueryExecutionBase) org.apache.jena.query.QueryExecutionFactory.create(cSparql, model);
+				resultSet = qe.execSelect();
+			} else {
+				String contentType = getContentType(dataset); // get the IRI
+																// content type
+				System.out.println("# IRI Content Type: " + contentType);
+				if (contentType.contains("application/ld+json") || contentType.contains("application/json")
+						|| contentType.contains("application/json+ld")) {
+					System.out.println("# Trying to read a 'json-ld' file...");
+					model.read(file.getAbsolutePath(), "JSON-LD");
+					qe = (org.apache.jena.sparql.engine.QueryExecutionBase) org.apache.jena.query.QueryExecutionFactory.create(cSparql, model);
+					resultSet = qe.execSelect();
+				} else if (contentType.contains("application/n-triples")) {
+					System.out.println("# Reading a N-Triples file...");
+					model.read(file.getAbsolutePath(), "N-TRIPLE");
+					qe = (org.apache.jena.sparql.engine.QueryExecutionBase) org.apache.jena.query.QueryExecutionFactory.create(cSparql, model);
+					resultSet = qe.execSelect();
+				} else if (contentType.contains("text/n3")) {
+					System.out.println("# Reading a Notation3 (N3) file...");
+					model.read(file.getAbsolutePath());
+					qe = (org.apache.jena.sparql.engine.QueryExecutionBase) org.apache.jena.query.QueryExecutionFactory.create(cSparql, model);
+					resultSet = qe.execSelect();
+				} else {
+					model.read(file.getAbsolutePath());
+					qe = (org.apache.jena.sparql.engine.QueryExecutionBase) org.apache.jena.query.QueryExecutionFactory.create(cSparql, model);
+					resultSet = qe.execSelect();
+				}
+			}
 			if (resultSet != null) {
 				ret = org.apache.jena.query.ResultSetFactory.copyResults(resultSet);
 			}
@@ -629,6 +634,8 @@ public class WimuSelection {
 		// mUDataset.forEach((uri,ds) -> {
 		for (String ds : mUDataset.values()) {
 			try {
+				ret.setBestDataset(ds);
+				size++;
 				// size = execQuery(cSparql, ds);
 				if((ds != null) && ds.contains("https://hdt.lod.labs.vu.nl")){
 					ret.setSize(execQueryLODAlot(cSparql, ds));
@@ -637,25 +644,24 @@ public class WimuSelection {
 				res = execQueryRes(cSparql, ds);
 				if (res == null)
 					continue;
-				while (res.hasNext()) {
-					size++;
-					if (size > prevRes) {
-						prevRes = size;
-						dataset = ds;
-						break;
-					}
+				if(res.hasNext()){
+					break;
 				}
-				// if (size > prevRes) {
-				// prevRes = size;
-				// dataset = ds;
-				// }
+//				while (res.hasNext()) {
+//					size++;
+//					if (size > prevRes) {
+//						prevRes = size;
+//						dataset = ds;
+//						break;
+//					}
+//				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			// });
 		}
 		ret.setSize(size);
-		ret.setBestDataset(dataset);
+		//ret.setBestDataset(dataset);
 		ret.setResult(res);
 		return ret;
 	}
