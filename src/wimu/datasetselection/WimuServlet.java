@@ -95,7 +95,7 @@ public class WimuServlet extends Servlet {
 			return;
 		} else if (req.getParameter("chkAllQueries") != null) {
 			try {
-				Set<String> setQueries = Util.getSampleQueries();
+				Set<String> setQueries = Util.getSampleQueries("/home/andre/queries.txt");
 				Set<WimuTQuery> res = Util.executeAllQueries(setQueries);
 				resp.getOutputStream().println("<!DOCTYPE html>");
 				resp.getOutputStream().println("<html>");

@@ -1,8 +1,13 @@
 package org.wimu.datasetselection;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.squin.dataset.QueriedDataset;
 import org.squin.dataset.hashimpl.individual.QueriedDatasetImpl;
 import org.squin.dataset.jenacommon.JenaIOBasedQueriedDataset;
@@ -121,12 +126,35 @@ public class Util {
 		Set<String> ret = new HashSet<String>();
 		ret.add("SELECT DISTINCT ?s ?p	WHERE { <http://linkedgeodata.org/triplify/node412946829> ?s ?p }");
 		ret.add("SELECT DISTINCT ?s ?p	WHERE { <http://acm.rkbexplorer.com/id/93601> ?s ?p }");
-		ret.add("SELECT DISTINCT ?s ?p	WHERE { <http://oai.rkbexplorer.com/id/opus.bath.ac.uk/person-78b3db1160c89486987cdcc0a7c3909e-4795f9a6c2ef498a5350b52ddd3dcd93> ?s ?p }");
+		ret.add("SELECT DISTINCT ?s ?p	WHERE { <http://citeseer.rkbexplorer.com/id/resource-CSP25940-be11bb484cf705c86b1b6280eff943b9> ?s ?p }");
+		//ret.add("SELECT DISTINCT ?s ?p	WHERE { <http://oai.rkbexplorer.com/id/opus.bath.ac.uk/person-78b3db1160c89486987cdcc0a7c3909e-4795f9a6c2ef498a5350b52ddd3dcd93> ?s ?p }");
 		ret.add("SELECT DISTINCT ?s ?p	WHERE { <http://mpii.de/yago/resource/The_Last_Ninja> ?s ?p }");
 		ret.add("SELECT DISTINCT ?s ?p	WHERE { <http://wordnet.rkbexplorer.com/id/wordsense-mess_around-verb-1> ?s ?p }");
 		ret.add("SELECT DISTINCT ?s ?p	WHERE { <http://dbpedia.org/resource/Leipzig> ?s ?p }");
 		ret.add("SELECT DISTINCT ?s ?p	WHERE { <http://dbpedia.org/resource/Berlin> ?s ?p }");
 		ret.add("SELECT DISTINCT ?s ?p	WHERE { <http://citeseer.rkbexplorer.com/id/resource-CS116606> ?s ?p }");
+		return ret;
+	}
+	
+	public static Set<String> getSampleQueries(String fName){
+		Set<String> ret = new HashSet<String>();
+		try {
+			List<String> lstLines = FileUtils.readLines(new File(fName), "UTF-8");
+			String query = "";
+			for (String line : lstLines) {
+				if(!line.equals("§")){
+					query += line + "\n";
+				}else{
+					ret.add(query);
+					query = "";
+					continue;
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return ret;
 	}
 
