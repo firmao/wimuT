@@ -11877,3 +11877,657 @@ SELECT * WHERE {
 	?paper <http://data.semanticweb.org/ns/swc/ontology#isPartOf> ?proceedings .
 	?proceedings <http://data.semanticweb.org/ns/swc/ontology#relatedToEvent>  <http://data.semanticweb.org/conference/eswc/2010> .
 }
+#-------------------------------------------------------
+SELECT ?predicate ?object WHERE {
+   { <http://dbpedia.org/resource/Barack_Obama> ?predicate ?object }
+   UNION    
+   { ?subject <http://www.w3.org/2002/07/owl#sameAs> <http://dbpedia.org/resource/Barack_Obama> .
+     ?subject ?predicate ?object } 
+}
+#------------------------------------------------------------------
+SELECT ?party ?page  WHERE {
+   <http://dbpedia.org/resource/Barack_Obama> <http://dbpedia.org/ontology/party> ?party .
+   ?x <http://data.nytimes.com/elements/topicPage> ?page .
+   ?x <http://www.w3.org/2002/07/owl#sameAs> <http://dbpedia.org/resource/Barack_Obama> .
+}
+#------------------------------------------------------------------
+SELECT ?president ?party ?page WHERE {
+   ?president <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/President> .
+   ?president <http://dbpedia.org/ontology/nationality> <http://dbpedia.org/resource/United_States> .
+   ?president <http://dbpedia.org/ontology/party> ?party .
+   ?x <http://data.nytimes.com/elements/topicPage> ?page .
+   ?x <http://www.w3.org/2002/07/owl#sameAs> ?president .
+}
+#------------------------------------------------------------------
+SELECT ?actor ?news WHERE {
+   ?film <http://purl.org/dc/terms/title> 'Tarzan' .
+   ?film <http://data.linkedmdb.org/resource/movie/actor> ?actor .
+   ?actor <http://www.w3.org/2002/07/owl#sameAs> ?x.
+   ?y <http://www.w3.org/2002/07/owl#sameAs> ?x .
+   ?y <http://data.nytimes.com/elements/topicPage> ?news
+}
+#------------------------------------------------------------------
+SELECT ?film ?director ?genre WHERE {
+   ?film <http://dbpedia.org/ontology/director>  ?director .
+   ?director <http://dbpedia.org/ontology/nationality> <http://dbpedia.org/resource/Italy> .
+   ?x <http://www.w3.org/2002/07/owl#sameAs> ?film .
+   ?x <http://data.linkedmdb.org/resource/movie/genre> ?genre .
+}
+#------------------------------------------------------------------
+SELECT ?name ?location  WHERE {
+   ?artist <http://xmlns.com/foaf/0.1/name> ?name .
+   ?artist <http://xmlns.com/foaf/0.1/based_near> ?location .
+   ?location <http://www.geonames.org/ontology#parentFeature> ?germany . 
+   ?germany <http://www.geonames.org/ontology#name> 'Federal Republic of Germany'
+}
+#------------------------------------------------------------------
+SELECT ?location ?news WHERE {
+   ?location <http://www.geonames.org/ontology#parentFeature> ?parent . 
+   ?parent <http://www.geonames.org/ontology#name> 'California' .
+   ?y <http://www.w3.org/2002/07/owl#sameAs> ?location .
+   ?y <http://data.nytimes.com/elements/topicPage> ?news 
+}
+#------------------------------------------------------------------
+SELECT $drug $melt WHERE {
+    { $drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/meltingPoint> $melt. }
+    UNION
+    { $drug <http://dbpedia.org/ontology/Drug/meltingPoint> $melt . }
+}
+#------------------------------------------------------------------
+SELECT ?predicate ?object WHERE {
+    { <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00201> ?predicate ?object . }
+    UNION    
+    { <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00201> <http://www.w3.org/2002/07/owl#sameAs> ?caff .
+      ?caff ?predicate ?object . } 
+}
+#------------------------------------------------------------------
+SELECT ?Drug ?IntDrug ?IntEffect WHERE {
+    ?Drug <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/Drug> .
+    ?y <http://www.w3.org/2002/07/owl#sameAs> ?Drug .
+    ?Int <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug1> ?y .
+    ?Int <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug2> ?IntDrug .
+    ?Int <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/text> ?IntEffect . 
+}
+#------------------------------------------------------------------
+SELECT ?drugDesc ?cpd ?equation WHERE {
+   ?drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/drugCategory> <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugcategory/cathartics> .
+   ?drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/keggCompoundId> ?cpd .
+   ?drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/description> ?drugDesc .
+   ?enzyme <http://bio2rdf.org/ns/kegg#xSubstrate> ?cpd .
+   ?enzyme <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bio2rdf.org/ns/kegg#Enzyme> .
+   ?reaction <http://bio2rdf.org/ns/kegg#xEnzyme> ?enzyme .
+   ?reaction <http://bio2rdf.org/ns/kegg#equation> ?equation . 
+}
+#------------------------------------------------------------------
+SELECT $drug $keggUrl $chebiImage WHERE {
+   $drug <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/drugs> .
+   $drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/keggCompoundId> $keggDrug .
+   $keggDrug <http://bio2rdf.org/ns/bio2rdf#url> $keggUrl .
+   $drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/genericName> $drugBankName .
+   $chebiDrug <http://purl.org/dc/elements/1.1/title> $drugBankName .
+   $chebiDrug <http://bio2rdf.org/ns/bio2rdf#image> $chebiImage .
+} 
+#------------------------------------------------------------------
+SELECT ?drug ?title WHERE { 
+   ?drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/drugCategory> <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugcategory/micronutrient> .
+   ?drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/casRegistryNumber> ?id .
+   ?keggDrug <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://bio2rdf.org/ns/kegg#Drug> .
+   ?keggDrug <http://bio2rdf.org/ns/bio2rdf#xRef> ?id .
+   ?keggDrug <http://purl.org/dc/elements/1.1/title> ?title .
+}
+#------------------------------------------------------------------
+SELECT $drug $transform $mass WHERE {  
+ 	{ $drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/affectedOrganism>  'Humans and other mammals'.
+ 	  $drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/casRegistryNumber> $cas .
+ 	  $keggDrug <http://bio2rdf.org/ns/bio2rdf#xRef> $cas .
+ 	  $keggDrug <http://bio2rdf.org/ns/bio2rdf#mass> $mass .
+ 	     	} .
+ 	  OPTIONAL { $drug <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/biotransformation> $transform . } 
+}
+#------------------------------------------------------------------
+PREFIX drugbank: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/> 
+PREFIX drugtype: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugtype/>
+PREFIX kegg: <http://bio2rdf.org/ns/kegg#>
+PREFIX chebi: <http://bio2rdf.org/ns/bio2rdf#>
+PREFIX purl: <http://purl.org/dc/elements/1.1/>
+SELECT DISTINCT ?drug	?drugDesc ?molecularWeightAverage 	?compound   ?ReactionTitle    ?ChemicalEquation 
+WHERE
+{
+?drug 			drugbank:description 	 ?drugDesc .
+?drug 			drugbank:drugType 	 drugtype:smallMolecule .
+?drug 	     drugbank:keggCompoundId ?compound. 
+?enzyme 		kegg:xSubstrate 	?compound .
+?Chemicalreaction 	kegg:xEnzyme 		?enzyme .
+?Chemicalreaction	kegg:equation 		?ChemicalEquation .
+?Chemicalreaction 	purl:title 		?ReactionTitle
+OPTIONAL 
+{ 
+?drug drugbank:molecularWeightAverage ?molecularWeightAverage.
+FILTER (?molecularWeightAverage > 114) 
+}
+}
+LIMIT 1000
+#------------------------------------------------------------------
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX drugbank: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/>
+PREFIX kegg: <http://bio2rdf.org/ns/kegg#>
+PREFIX chebi: <http://bio2rdf.org/ns/chebi#>
+PREFIX purl: <http://purl.org/dc/elements/1.1/>
+PREFIX bio2RDF: <http://bio2rdf.org/ns/bio2rdf#>
+SELECT ?drug ?keggmass ?chebiIupacName 
+WHERE 
+{
+?drug rdf:type drugbank:drugs .
+?drug drugbank:keggCompoundId ?keggDrug .
+?keggDrug bio2RDF:mass ?keggmass .
+?drug drugbank:genericName ?drugBankName .
+?chebiDrug purl:title ?drugBankName .
+?chebiDrug chebi:iupacName ?chebiIupacName .
+OPTIONAL { 
+?drug drugbank:inchiIdentifier ?drugbankInchi .
+?chebiDrug bio2RDF:inchi ?chebiInchi.
+FILTER (?drugbankInchi = ?chebiInchi) 
+}
+}
+#------------------------------------------------------------------
+PREFIX foaf: 		<http://xmlns.com/foaf/0.1/>
+PREFIX geonames: 	<http://www.geonames.org/ontology#>
+PREFIX mo:   		<http://purl.org/ontology/mo/>
+PREFIX nytimes:         <http://data.nytimes.com/elements/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+SELECT DISTINCT ?artist ?name ?location ?anylocation
+WHERE {
+	?artist a mo:MusicArtist ;
+         foaf:name ?name ;
+		foaf:based_near ?location .
+         ?location geonames:parentFeature ?locationName .
+         ?locationName geonames:name ?anylocation .
+         ?nytLocation owl:sameAs ?location.
+         ?nytLocation nytimes:topicPage ?news 
+OPTIONAL 
+{
+         ?locationName geonames:name 'Islamic Republic of Afghanistan' .
+}
+}
+#------------------------------------------------------------------
+prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+prefix geonames: <http://www.geonames.org/ontology#>
+prefix owl: <http://www.w3.org/2002/07/owl#>
+Prefix dbpedia: <http://dbpedia.org/ontology/>
+SELECT DISTINCT ?countryName ?countryCode ?locationMap ?population ?longitude ?latitude ?nationalAnthem ?foundingDate ?largestCity ?ethnicGroup ?motto
+{
+?NYTplace geonames:name ?countryName;
+geonames:countryCode ?countryCode;
+geonames:population  ?population;
+geo:long   ?longitude;
+geo:lat     ?latitude;
+owl:sameAs   ?geonameplace.
+OPTIONAL
+{
+?geonameplace dbpedia:capital ?capital;
+dbpedia:anthem ?nationalAnthem;
+dbpedia:foundingDate ?foundingDate;
+dbpedia:largestCity ?largestCity;
+dbpedia:ethnicGroup ?ethnicGroup;
+dbpedia:motto ?motto.
+}
+}
+LIMIT 50
+#------------------------------------------------------------------
+PREFIX linkedmdb: <http://data.linkedmdb.org/resource/movie/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX dbpedia: <http://dbpedia.org/ontology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?actor ?movie ?movieTitle ?movieDate ?birthDate ?spouseName
+{
+        ?actor rdfs:label ?actor_name_en;
+               dbpedia:birthDate ?birthDate ;
+               dbpedia:spouse ?spouseURI .
+        ?spouseURI rdfs:label ?spouseName .
+
+ 	?imdbactor linkedmdb:actor_name ?actor_name.
+      ?movie linkedmdb:actor ?imdbactor ;
+             dcterms:title ?movieTitle ;
+             dcterms:date ?movieDate
+      FILTER(STR(?actor_name_en )= STR(?actor_name))
+
+} LIMIT 500
+#------------------------------------------------------------------
+PREFIX linkedmdb: <http://data.linkedmdb.org/resource/movie/>
+prefix owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX purl: <http://purl.org/dc/terms/>
+PREFIX nytimes: <http://data.nytimes.com/elements/>
+SELECT ?actor ?filmTitle ?news ?variants ?articleCount ?first_use ?latest_use
+WHERE 
+{
+?film purl:title 			?filmTitle .
+?film linkedmdb:actor 			?actor .
+?actor owl:sameAs 			?dbpediaURI.
+?nytURI owl:sameAs 			?dbpediaURI .
+?nytURI nytimes:topicPage 		?news ;
+	nytimes:number_of_variants 	?variants;
+	nytimes:associated_article_count ?articleCount;
+	nytimes:first_use 		?first_use;
+	nytimes:latest_use 		?latest_use
+}
+ORDER BY (?actor)
+#------------------------------------------------------------------
+prefix swc: <http://data.semanticweb.org/ns/swc/ontology#>
+prefix swrc: <http://swrc.ontoware.org/ontology#>
+prefix eswc: <http://data.semanticweb.org/conference/eswc/>
+prefix foaf: <http://xmlns.com/foaf/0.1/>
+prefix dbpedia: <http://dbpedia.org/ontology/>
+prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+SELECT DISTINCT ?author ?role ?paper ?place ?capital ?latitude ?longitude  ?proceedings WHERE 
+{
+?role swc:isRoleAt  eswc:2010.
+?role swc:heldBy ?author .
+?proceedings swc:relatedToEvent eswc:2010.
+?paper swrc:author ?author .
+?author foaf:based_near ?place.
+?paper swc:isPartOf ?proceedings . 
+OPTIONAL
+{
+?place dbpedia:capital ?capital;
+	geo:lat ?latitude;	
+	geo:long ?longitude.
+}
+}
+#------------------------------------------------------------------
+prefix swc: <http://data.semanticweb.org/ns/swc/ontology#>
+prefix swrc: <http://swrc.ontoware.org/ontology#>
+prefix eswc: <http://data.semanticweb.org/conference/eswc/>
+prefix iswc:  <http://data.semanticweb.org/conference/iswc/2009/>
+prefix foaf: <http://xmlns.com/foaf/0.1/>
+prefix purl: <http://purl.org/ontology/bibo/>
+PREFIX dbpedia: <http://dbpedia.org/ontology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT * WHERE 
+{
+?paper swc:isPartOf iswc:proceedings .
+iswc:proceedings swrc:address ?proceedingAddress.
+?paper swrc:author ?author .
+?author swrc:affiliation ?affiliation ;
+ rdfs:label ?fullnames ;
+ foaf:based_near ?place.
+OPTIONAL
+{
+?place dbpedia:capital ?capital;
+       dbpedia:populationDensity  ?populationDensity;
+       dbpedia:governmentType   ?governmentType;
+       dbpedia:language  ?language ;
+       dbpedia:leaderTitle ?leaderTitle.
+}
+}
+#------------------------------------------------------------------
+Prefix dbpedia: <http://dbpedia.org/ontology/>
+Prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+Prefix owl: <http://www.w3.org/2002/07/owl#>
+Prefix drugbank: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/>
+SELECT * WHERE 
+{
+?Drug rdf:type dbpedia:Drug .
+?drugbankDrug owl:sameAs ?Drug .
+?InteractionName drugbank:interactionDrug1 ?drugbankDrug .
+?InteractionName drugbank:interactionDrug2 ?drugbankDrug2 .
+?InteractionName drugbank:text ?IntEffect 
+OPTIONAL
+{
+?drugbankDrug  drugbank:affectedOrganism 'Humans and other mammals';
+drugbank:description ?description ;
+drugbank:structure ?structure ;
+drugbank:casRegistryNumber ?casRegistryNumber
+}
+}
+ORDER BY (?drugbankDrug)
+LIMIT 100
+#------------------------------------------------------------------
+PREFIX tcga: <http://tcga.deri.ie/schema/>
+PREFIX kegg: <http://bio2rdf.org/ns/kegg#>
+PREFIX dbpedia: <http://dbpedia.org/ontology/>
+PREFIX drugbank: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/>
+PREFIX purl: <http://purl.org/dc/terms/>
+SELECT  DISTINCT ?patient  ?gender ?country ?popDensity ?drugName ?indication ?formula ?compound 
+WHERE
+{
+?uri tcga:bcr_patient_barcode 			?patient .
+?patient tcga:gender 					?gender.
+?patient dbpedia:country 				?country.
+?country dbpedia:populationDensity 		?popDensity.
+?patient tcga:bcr_drug_barcode 			?drugbcr.
+?drugbcr tcga:drug_name 				?drugName. 
+?drgBnkDrg  drugbank:genericName 		?drugName.
+?drgBnkDrg  drugbank:indication 		?indication.
+?drgBnkDrg  drugbank:chemicalFormula 	?formula.
+?drgBnkDrg 	drugbank:keggCompoundId 	?compound .
+}
+#------------------------------------------------------------------
+PREFIX tcga: <http://tcga.deri.ie/schema/> 
+SELECT  ?expValue 
+WHERE
+{
+  {
+   ?s	tcga:bcr_patient_barcode	<http://tcga.deri.ie/TCGA-37-3789>.  
+   <http://tcga.deri.ie/TCGA-37-3789>	tcga:result	?results. 
+   ?results  tcga:RPKM ?expValue.
+  }
+UNION
+  {
+   ?uri	tcga:bcr_patient_barcode	<http://tcga.deri.ie/TCGA-37-3789>.  
+   <http://tcga.deri.ie/TCGA-37-3789>	tcga:result	?geneResults. 
+   ?geneResults  tcga:scaled_estimate ?expValue.
+  }
+}
+#------------------------------------------------------------------
+PREFIX tcga: <http://tcga.deri.ie/schema/> 
+SELECT   DISTINCT ?patient ?tumorType ?exonValue
+WHERE
+{
+?s tcga:bcr_patient_barcode ?patient.
+?patient tcga:disease_acronym <http://tcga.deri.ie/lusc>.
+?patient tcga:tumor_weight ?weight.
+?patient tcga:tumor_type ?tumorType. 
+?patient tcga:result ?results.
+?results tcga:RPKM  ?exonValue.
+FILTER(?weight <= 55)
+}
+#------------------------------------------------------------------
+PREFIX tcga: <http://tcga.deri.ie/schema/> 
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT  ?patient ?methylationValue
+WHERE
+{
+?s tcga:bcr_patient_barcode ?patient.
+?patient <http://tcga.deri.ie/schema/vital_status> "Dead".
+?patient tcga:bcr_drug_barcode ?drug.
+?drug tcga:drug_name "Tarceva".
+?patient <http://tcga.deri.ie/schema/age_at_initial_pathologic_diagnosis> ?age.
+?patient tcga:result ?results.
+?results  tcga:beta_value ?methylationValue.
+FILTER(?age <= 51)
+}
+ORDER BY (?patient)
+#------------------------------------------------------------------
+PREFIX tcga: <http://tcga.deri.ie/schema/> 
+PREFIX dbpedia: <http://dbpedia.org/ontology/>
+SELECT    ?expressionValues
+WHERE
+{
+ {
+  ?uri tcga:bcr_patient_barcode ?patient.
+  ?patient dbpedia:country ?country.
+  ?patient tcga:result ?results.
+  ?results  tcga:reads_per_million_miRNA_mapped ?expressionValues.
+ }
+UNION
+ {
+  ?s tcga:bcr_patient_barcode ?patient.
+  ?patient dbpedia:country ?country.
+  ?patient tcga:result ?exonResults.
+  ?exonResults tcga:RPKM ?expressionValues.
+ }
+FILTER REGEX(?country,"Brazil|Argentina", "i")
+}
+#------------------------------------------------------------------
+PREFIX tcga: <http://tcga.deri.ie/schema/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX affymetrix: <http://bio2rdf.org/affymetrix_vocabulary:>
+SELECT  ?methylationCNTNAP2   
+WHERE 
+{
+ ?s affymetrix:x-symbol <http://bio2rdf.org/symbol:CNTNAP2>.
+ ?s affymetrix:x-geneid ?geneId.
+ ?geneId rdf:type tcga:expression_gene_lookup.
+ ?geneId tcga:chromosome ?lookupChromosome. 
+ ?geneId tcga:start ?start.
+ ?geneId tcga:stop  ?stop. 
+ ?uri tcga:bcr_patient_barcode ?patient .
+ ?patient tcga:result ?recordNo .
+ ?recordNo tcga:chromosome   ?chromosome.
+ ?recordNo tcga:position     ?position.
+ ?recordNo tcga:beta_value  ?methylationCNTNAP2.
+ FILTER (?position >= ?start && ?position <= ?stop && str(?chromosome) = str(?lookupChromosome) )
+ 
+}
+#------------------------------------------------------------------
+PREFIX tcga: <http://tcga.deri.ie/schema/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX affymetrix: <http://bio2rdf.org/affymetrix_vocabulary:>
+SELECT  DISTINCT ?patient ?start ?stop ?geneExpVal 
+WHERE 
+{
+	?s affymetrix:x-symbol <http://bio2rdf.org/symbol:KRAS>.
+	?s affymetrix:x-geneid ?geneId.
+	?geneId rdf:type tcga:expression_gene_lookup.
+	?geneId tcga:chromosome ?lookupChromosome.
+	?uri tcga:bcr_patient_barcode ?patient .
+	?patient tcga:result ?recordNo .
+	?recordNo tcga:chromosome   ?chromosome.
+	?recordNo tcga:start ?start.
+	?recordNo tcga:stop ?stop.
+	?recordNo tcga:scaled_estimate ?geneExpVal
+	FILTER (str(?lookupChromosome)= str(?chromosome))
+}
+#------------------------------------------------------------------
+PREFIX tcga: <http://tcga.deri.ie/schema/>
+PREFIX dbpedia: <http://dbpedia.org/ontology/>
+SELECT DISTINCT ?patient ?p ?o
+WHERE
+{
+?uri tcga:bcr_patient_barcode ?patient .
+?patient dbpedia:country ?country.
+?country dbpedia:populationDensity ?popDensity.
+?patient tcga:bcr_aliquot_barcode ?aliquot.
+?aliquot ?p ?o.
+FILTER(?popDensity >= 32)
+}
+#------------------------------------------------------------------
+PREFIX tcga: <http://tcga.deri.ie/schema/>
+PREFIX dbpedia: <http://dbpedia.org/ontology/>
+SELECT  ?chromosome ?expressionValue
+WHERE
+{
+{
+?uri tcga:bcr_patient_barcode <http://tcga.deri.ie/TCGA-D9-A1X3> .
+<http://tcga.deri.ie/TCGA-D9-A1X3> tcga:result ?recordNo .
+?recordNo tcga:chromosome   ?chromosome.
+?recordNo tcga:protein_expression_value ?expressionValue.
+}
+UNION
+{
+?s tcga:bcr_patient_barcode <http://tcga.deri.ie/TCGA-D9-A1X3> .
+<http://tcga.deri.ie/TCGA-D9-A1X3> tcga:result ?results .
+?results tcga:chromosome   ?chromosome.
+?results tcga:beta_value ?expressionValue.
+}
+FILTER (?expressionValue > 0.05)
+}
+#------------------------------------------------------------------
+SELECT DISTINCT  *
+WHERE
+  { ?place          <http://www.geonames.org/ontology#name>  ?countryName .
+    ?place          <http://www.geonames.org/ontology#countryCode>  ?countryCode .
+    ?place          <http://www.geonames.org/ontology#population>  ?population .
+    ?place          <http://www.w3.org/2003/01/geo/wgs84_pos#long>  ?longitude .
+    ?place          <http://www.w3.org/2003/01/geo/wgs84_pos#lat>  ?latitude .
+    ?place          <http://www.w3.org/2002/07/owl#sameAs>  ?geonameplace .
+    ?geonameplace          <http://dbpedia.org/ontology/capital>  ?capital .
+    ?geonameplace          <http://dbpedia.org/ontology/anthem>  ?nationalAnthem .
+    ?geonameplace          <http://dbpedia.org/ontology/foundingDate>  ?foundingDate .
+    ?geonameplace          <http://dbpedia.org/ontology/largestCity>  ?largestCity .
+    ?geonameplace          <http://dbpedia.org/ontology/ethnicGroup>  ?ethnicGroup .
+    ?geonameplace          <http://dbpedia.org/ontology/motto>  ?motto .
+    ?role     <http://data.semanticweb.org/ns/swc/ontology#heldBy>  ?writer .
+    ?writer   <http://xmlns.com/foaf/0.1/based_near>  ?geonameplace .
+    ?dbpediaCountry   <http://www.w3.org/2002/07/owl#sameAs>  ?geonameplace .
+    ?dbpediaCountry   <http://data.nytimes.com/elements/latest_use>  ?dateused .
+  }
+ORDER BY DESC(?population)
+#------------------------------------------------------------------
+SELECT DISTINCT  ?drug ?drugBankName ?keggmass ?chebiIupacName
+WHERE
+  { ?dbPediaDrug  a                 <http://dbpedia.org/ontology/Drug> .
+    ?dbPediaDrug         <http://dbpedia.org/ontology/casNumber>  ?casNumber .
+    ?drugbankDrug         <http://www.w3.org/2002/07/owl#sameAs>  ?dbPediadrug .
+    ?drugbankDrug          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/keggCompoundId>  ?keggDrug .
+    ?keggDrug  <http://bio2rdf.org/ns/bio2rdf#mass>  ?keggmass .
+    ?drug     <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/genericName>  ?drugBankName .
+    ?chebiDrug  <http://purl.org/dc/elements/1.1/title>  ?drugBankName .
+    ?chebiDrug          <http://bio2rdf.org/ns/chebi#iupacName>  ?chebiIupacName .
+    ?drug     <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/inchiIdentifier>  ?drugbankInchi .
+    ?chebiDrug  <http://bio2rdf.org/ns/bio2rdf#inchi>  ?chebiInchi .
+    FILTER regex(?chebiIupacName, "adenosine")
+  }
+#------------------------------------------------------------------
+SELECT  *
+WHERE
+  { ?drugbcr  <http://tcga.deri.ie/schema/drug_name>  ?drug .
+    ?drgBnkDrg  <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/genericName>  ?drug .
+    ?drgBnkDrg          <http://www.w3.org/2002/07/owl#sameAs>  ?dbpediaDrug .
+    ?dbpediaDrug  <http://www.w3.org/2000/01/rdf-schema#label>  ?label .
+    ?drgBnkDrg  <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/keggCompoundId>  ?keggDrug .
+    ?keggDrug  <http://bio2rdf.org/ns/bio2rdf#mass>  ?keggmass .
+    ?keggDrug         <http://purl.org/dc/elements/1.1/title>  ?title .
+    ?chebiDrug  <http://purl.org/dc/elements/1.1/title>  ?drug .
+    ?chebiDrug          <http://bio2rdf.org/ns/bio2rdf#mass>  ?mass .
+    ?chebiDrug          <http://bio2rdf.org/ns/bio2rdf#formula>  ?formula .
+    ?chebiDrug          <http://bio2rdf.org/ns/bio2rdf#urlImage>  ?image .
+  }
+ORDER BY ?mass
+#------------------------------------------------------------------
+SELECT DISTINCT  *
+WHERE
+  { ?role     <http://data.semanticweb.org/ns/swc/ontology#isRoleAt>  <http://data.semanticweb.org/conference/eswc/2010> .
+    ?role          <http://data.semanticweb.org/ns/swc/ontology#heldBy>  ?author .
+    ?author   <http://xmlns.com/foaf/0.1/based_near>  ?geoname .
+    ?geoname  <http://www.w3.org/2003/01/geo/wgs84_pos#long>  ?longitude .
+    ?dbpediaCountry           <http://www.w3.org/2002/07/owl#sameAs>  ?geoname .
+    ?dbpediaCountry          <http://data.nytimes.com/elements/latest_use>  ?dateused .
+    ?dbpediaCountry          <http://www.w3.org/2002/07/owl#sameAs>  ?geoname .
+    ?artist   <http://xmlns.com/foaf/0.1/based_near>  ?geoname .
+    ?artist          <http://xmlns.com/foaf/0.1/homepage>  <http://people.csail.mit.edu/lkagal/> .
+    ?director  <http://dbpedia.org/ontology/nationality>  ?geoname .
+    ?film     <http://dbpedia.org/ontology/director>  ?director .
+    ?mdbFilm  <http://www.w3.org/2002/07/owl#sameAs>  ?film .
+    ?mdbFilm          <http://data.linkedmdb.org/resource/movie/genre>  ?genre .
+    FILTER regex(?geoname, "United")
+  }
+#------------------------------------------------------------------
+SELECT DISTINCT  *
+WHERE
+  { ?uri      <http://tcga.deri.ie/schema/bcr_patient_barcode>  ?patient .
+    ?patient  ?p                    ?country .
+    ?country  <http://dbpedia.org/ontology/populationDensity>  32 .
+    ?nytimesCountry               <http://www.w3.org/2002/07/owl#sameAs>  ?country .
+    ?nytimesCountry          <http://data.nytimes.com/elements/latest_use>  ?dateused .
+    ?nytimesCountry          <http://www.w3.org/2002/07/owl#sameAs>  ?geonames .
+    ?artist   <http://xmlns.com/foaf/0.1/based_near>  ?geoname .
+    ?artist          <http://xmlns.com/foaf/0.1/homepage>  ?homepage .
+    ?director  <http://dbpedia.org/ontology/nationality>  ?dbpediaCountry .
+    ?film     <http://dbpedia.org/ontology/director>  <http://dbpedia.org/resource/Michael_Haussman> .
+    ?x        <http://www.w3.org/2002/07/owl#sameAs>  ?film .
+    ?x          <http://data.linkedmdb.org/resource/movie/genre>  ?genre .
+    ?patient  <http://tcga.deri.ie/schema/bcr_drug_barcode>  ?drugbcr .
+    ?drugbcr  <http://tcga.deri.ie/schema/drug_name>  ?drugName .
+    <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00441>            <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/genericName>  ?drugName .
+    <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00441>           <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/indication>  ?indication .
+    <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00441>           <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/chemicalFormula>  ?formula .
+    <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00441>           <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/keggCompoundId>  ?compound .
+  }
+LIMIT   5
+#------------------------------------------------------------------
+SELECT  ?patient ?country ?articleCount ?chemicalStructure ?id
+WHERE
+  { <http://tcga.deri.ie/TCGA-43-2576>            <http://tcga.deri.ie/schema/bcr_patient_barcode>  ?patient .
+    ?patient  <http://tcga.deri.ie/schema/gender>  "FEMALE" .
+    ?patient          <http://dbpedia.org/ontology/country>  ?country .
+    ?country  <http://dbpedia.org/ontology/populationDensity>  ?popDen .
+    ?nytimesCountry               <http://www.w3.org/2002/07/owl#sameAs>  ?country .
+    ?nytimesCountry          <http://data.nytimes.com/elements/latest_use>  ?latestused .
+    ?nytimesCountry          <http://data.nytimes.com/elements/number_of_variants>  ?totalVariants .
+    ?nytimesCountry          <http://data.nytimes.com/elements/associated_article_count>  ?articleCount .
+    ?nytimesCountry          <http://www.w3.org/2002/07/owl#sameAs>  ?geonames .
+    <http://data.semanticweb.org/person/christian-bizer>               <http://xmlns.com/foaf/0.1/based_near>  ?geoname .
+    <http://data.semanticweb.org/person/christian-bizer>          <http://xmlns.com/foaf/0.1/homepage>  ?homepage .
+    ?director  <http://dbpedia.org/ontology/nationality>  ?dbpediaCountry .
+    <http://dbpedia.org/resource/The_Last_Valley>               <http://dbpedia.org/ontology/director>  ?director .
+    ?x        <http://www.w3.org/2002/07/owl#sameAs>  <http://dbpedia.org/resource/The_Last_Valley> .
+    ?x           <http://data.linkedmdb.org/resource/movie/genre>  <http://data.linkedmdb.org/resource/film_genre/4> .
+    ?patient  <http://tcga.deri.ie/schema/bcr_drug_barcode>  ?drugbcr .
+    ?drugbcr  <http://tcga.deri.ie/schema/drug_name>  "Cisplatin" .
+    ?drgBnkDrg  <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/inchiKey>  ?inchiKey .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/meltingPoint>  ?meltingPoint .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/chemicalStructure>  ?chemicalStructure .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/casRegistryNumber>  ?id .
+    ?keggDrug  a                    <http://bio2rdf.org/ns/kegg#Drug> .
+    ?keggDrug          <http://bio2rdf.org/ns/bio2rdf#xRef>  ?id .
+    ?keggDrug          <http://purl.org/dc/elements/1.1/title>  "Follitropin alfa/beta" .
+  }
+#------------------------------------------------------------------
+SELECT DISTINCT  *
+WHERE
+  { ?uri      <http://tcga.deri.ie/schema/bcr_patient_barcode>  ?patient .
+    ?patient  <http://tcga.deri.ie/schema/consent_or_death_status>  ?deathStatus .
+    ?patient         <http://dbpedia.org/ontology/country>  ?country .
+    ?country  <http://dbpedia.org/ontology/areaMetro>  ?areaMetro .
+    ?nytimesCountry               <http://www.w3.org/2002/07/owl#sameAs>  ?country .
+    ?nytimesCountry          <http://data.nytimes.com/elements/search_api_query>  ?apiQuery .
+    ?nytimesCountry          <http://www.w3.org/2002/07/owl#sameAs>  ?location .
+    ?artist   <http://xmlns.com/foaf/0.1/based_near>  ?location .
+    ?artist          <http://xmlns.com/foaf/0.1/firstName>  ?firstName .
+    ?director  <http://dbpedia.org/ontology/spouse>  ?spouse .
+    ?film     <http://dbpedia.org/ontology/director>  ?director .
+    ?x        <http://www.w3.org/2002/07/owl#sameAs>  ?film .
+    ?x           <http://data.linkedmdb.org/resource/movie/runtime>  ?runTime .
+    ?patient  <http://tcga.deri.ie/schema/bcr_drug_barcode>  ?drugbcr .
+    ?drugbcr  <http://tcga.deri.ie/schema/drug_name>  ?drugName .
+    ?drgBnkDrg  <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/casRegistryNumber>  ?id .
+    ?drgBnkDrg           <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/brandName>  ?brandName .
+    ?keggDrug  <http://bio2rdf.org/ns/bio2rdf#xRef>  ?id .
+    ?keggDrug          <http://bio2rdf.org/ns/bio2rdf#mass>  ?mass .
+    ?keggDrug          <http://bio2rdf.org/ns/bio2rdf#synonym>  ?synonym .
+    ?chebiDrug  <http://purl.org/dc/elements/1.1/title>  ?drugName .
+  }
+LIMIT   775
+#------------------------------------------------------------------
+SELECT  *
+WHERE
+  { ?uri      <http://tcga.deri.ie/schema/bcr_patient_barcode>  ?patient .
+    ?patient  <http://tcga.deri.ie/schema/gender>  ?gender .
+    ?patient          <http://dbpedia.org/ontology/country>  ?country .
+    ?country  <http://dbpedia.org/ontology/populationDensity>  ?popDensity .
+    ?nytimesCountry               <http://www.w3.org/2002/07/owl#sameAs>  ?country .
+    ?nytimesCountry          <http://data.nytimes.com/elements/latest_use>  ?latestused .
+    ?nytimesCountry          <http://data.nytimes.com/elements/number_of_variants>  ?totalVariants .
+    ?nytimesCountry          <http://data.nytimes.com/elements/associated_article_count>  ?articleCount .
+     ?nytimesCountry         <http://www.w3.org/2002/07/owl#sameAs>  ?geonames .
+    ?role     <http://data.semanticweb.org/ns/swc/ontology#isRoleAt>  <http://data.semanticweb.org/conference/eswc/2010> .
+    ?role          <http://data.semanticweb.org/ns/swc/ontology#heldBy>  ?author .
+    ?author   <http://xmlns.com/foaf/0.1/based_near>  ?geoname .
+    ?artist   <http://xmlns.com/foaf/0.1/based_near>  ?geoname .
+    ?artist          <http://xmlns.com/foaf/0.1/homepage>  ?homepage .
+    ?director  <http://dbpedia.org/ontology/nationality>  ?dbpediaCountry .
+    ?film     <http://dbpedia.org/ontology/director>  ?director .
+    ?x        <http://www.w3.org/2002/07/owl#sameAs>  ?film .
+    ?x           <http://data.linkedmdb.org/resource/movie/genre>  ?genre .
+    ?patient  <http://tcga.deri.ie/schema/bcr_drug_barcode>  ?drugbcr .
+    ?drugbcr  <http://tcga.deri.ie/schema/drug_name>  ?drugName .
+    ?drgBnkDrg  <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/inchiKey>  ?inchiKey .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/meltingPoint>  ?meltingPoint .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/chemicalStructure>  ?chemicalStructure .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/casRegistryNumber>  ?id .
+    ?keggDrug  a                    <http://bio2rdf.org/ns/kegg#Drug> .
+    ?keggDrug          <http://bio2rdf.org/ns/bio2rdf#xRef>  ?id .
+    ?keggDrug          <http://purl.org/dc/elements/1.1/title>  ?title .
+    ?chebiDrug  <http://purl.org/dc/elements/1.1/title>  ?drugName .
+    ?chebiDrug          <http://bio2rdf.org/ns/chebi#iupacName>  ?chebiIupacName
+    OPTIONAL
+      { ?drgBnkDrg  <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/inchiIdentifier>  ?drugbankInchi .
+        ?chebiDrug  <http://bio2rdf.org/ns/bio2rdf#inchi>  ?chebiInchi .
+        FILTER ( ?drugbankInchi = ?chebiInchi )
+      }
+  }
+LIMIT   1
