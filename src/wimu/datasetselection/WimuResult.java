@@ -2,14 +2,13 @@ package org.wimu.datasetselection;
 
 import java.util.Map;
 
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.query.ResultSetFormatter;
+import org.apache.jena.query.ResultSet;
 
 
 public class WimuResult {
 	long size;
 	String bestDataset, query;
-	org.apache.jena.query.ResultSet result;
+	ResultSet result;
 	Map<String, String> datasets;
 	
 	public Map<String, String> getDatasets() {
