@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -23,7 +24,9 @@ public class QueryLODaLot {
 
 	public static void main(String[] args) throws IOException {
 		long start = System.currentTimeMillis();
-		String query = "SELECT DISTINCT ?s ?p	WHERE { <http://dbpedia.org/resource/Leipzig> ?s ?p }";
+		//String query = "SELECT DISTINCT ?s ?p	WHERE { <http://dbpedia.org/resource/Leipzig> ?s ?p }";
+		String query = "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" + 
+				"Select ?s ?o where { ?s owl:sameAs ?o }";
 		Set<String> res = execQuery(query);
 		for (String triple : res) {
 			System.out.println(triple);
@@ -118,7 +121,7 @@ public class QueryLODaLot {
 				++page;
 				URL url = new URL(
 						"https://hdt.lod.labs.vu.nl/triple?g=%3Chttps%3A//hdt.lod.labs.vu.nl/graph/LOD-a-lot%3E&"
-								+ field + "=%3C" + uri + "%3E&page_size=" + pageSize + "&page=" + page);
+								+ field + "=%3C" + URLEncoder.encode(uri,"UTF-8") + "%3E&page_size=" + pageSize + "&page=" + page);
 				BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
 				
 				HashSet<String> instances = new HashSet<>();

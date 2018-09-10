@@ -32,8 +32,8 @@ public class Main {
 		} else if(args[1].equals("wimut")){
 			res = Util.executeAllQueriesWimuT(setQueries);
 		}
-		Util.writeFile(res, "results.tsv");
 		long totalTime = System.currentTimeMillis() - start;
+		Util.writeFile(res, "results.tsv");
 		System.out.println("Total Time (ms): " + totalTime);
 		if(Util.mUriDataset.size() > initSize) {
 			Util.writeFile(Util.mUriDataset, "URI_Dataset.tsv");

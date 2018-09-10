@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,7 +17,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.lf5.viewer.configure.MRUFileManager;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.sparql.core.Prologue;
 
 import com.google.gson.Gson;
 
@@ -38,10 +42,10 @@ public class Util {
 			String uri = s[0];
 			String urlDataset = s[1];
 			mUriDataset.put(uri, urlDataset);
-			
+
 		}
 	}
-	
+
 	public static Set<String> getQueries() {
 		Set<String> ret = new HashSet<String>();
 		ret.add("PREFIX dbo: <http://dbpedia.org/ontology/>\n" + "PREFIX dbp: <http://dbpedia.org/resource/>\n"
@@ -223,40 +227,43 @@ public class Util {
 	public static Set<WimuTQuery> executeAllQueries(Set<String> setQueries) {
 		final Set<WimuTQuery> ret = new HashSet<WimuTQuery>();
 		System.out.println("### Executing SQUIN AND WimuT ###");
-		//setQueries.parallelStream().forEach(query -> {
+		// setQueries.parallelStream().forEach(query -> {
 		for (String query : setQueries) {
 			WimuTQuery wQuery = new WimuTQuery();
 			try {
 				long start = System.currentTimeMillis();
-				boolean hasResultsSquin = Squin.execSquin(query);
+				//boolean hasResultsSquin = Squin.execSquin(query);
+				String rSquin = Squin.execSquin(query);
 				long totalTime = System.currentTimeMillis() - start;
-				wQuery.setHasResultsSquin(hasResultsSquin);
+				wQuery.setResultSquin(rSquin);
+				wQuery.setHasResultsSquin(rSquin.contains("<http"));
 				wQuery.setTimeSquin(totalTime);
 
 				start = System.currentTimeMillis();
 				WimuResult wRes = WimuSelection.execQuery(query, false);
-				//WimuResult wRes = WimuSelection.execQueryParallel(query, false);
+				// WimuResult wRes = WimuSelection.execQueryParallel(query, false);
 				totalTime = System.currentTimeMillis() - start;
-				wQuery.setHasResultsWimu((wRes.getSize() > 0));
+				wQuery.setHasResultsWimu(wRes.getResult().contains("<http"));
 				wQuery.setTimeWimu(totalTime);
 				wQuery.setQuery(query);
 				wQuery.setDatasetWimu(wRes.getBestDataset());
 				wQuery.setDatasets(wRes.getDatasets());
+				wQuery.setResults(wRes.getResult());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			ret.add(wQuery);
 			System.out.println("Query " + ret.size() + " of " + setQueries.size() + " done");
 		}
-		//});
+		// });
 		return ret;
 	}
-	
+
 	public static Set<WimuTQuery> executeAllQueriesWimuT(Set<String> setQueries) {
 		final Set<WimuTQuery> ret = new HashSet<WimuTQuery>();
 
 		System.out.println("###### ONLY WIMU_T #########");
-		//setQueries.parallelStream().forEach(query -> {
+		// setQueries.parallelStream().forEach(query -> {
 		for (String query : setQueries) {
 			WimuTQuery wQuery = new WimuTQuery();
 			try {
@@ -264,20 +271,21 @@ public class Util {
 				wQuery.setTimeSquin(0);
 				long start = System.currentTimeMillis();
 				WimuResult wRes = WimuSelection.execQuery(query, false);
-				//WimuResult wRes = WimuSelection.execQueryParallel(query, false);
+				// WimuResult wRes = WimuSelection.execQueryParallel(query, false);
 				long totalTime = System.currentTimeMillis() - start;
-				wQuery.setHasResultsWimu((wRes.getSize() > 0));
+				wQuery.setHasResultsWimu(wRes.getResult().contains("<http"));
 				wQuery.setTimeWimu(totalTime);
 				wQuery.setQuery(query);
 				wQuery.setDatasetWimu(wRes.getBestDataset());
 				wQuery.setDatasets(wRes.getDatasets());
+				wQuery.setResults(wRes.getResult());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			ret.add(wQuery);
 			System.out.println("Query " + ret.size() + " of " + setQueries.size() + " done");
 		}
-		//});
+		// });
 		return ret;
 	}
 
@@ -285,14 +293,16 @@ public class Util {
 		final Set<WimuTQuery> ret = new HashSet<WimuTQuery>();
 
 		System.out.println("####### ONLY SQUIN ############");
-		//setQueries.parallelStream().forEach(query -> {
+		// setQueries.parallelStream().forEach(query -> {
 		for (String query : setQueries) {
 			WimuTQuery wQuery = new WimuTQuery();
 			try {
 				long start = System.currentTimeMillis();
-				boolean hasResultsSquin = Squin.execSquin(query);
+				//boolean hasResultsSquin = Squin.execSquin(query);
+				String rSquin = Squin.execSquin(query);
 				long totalTime = System.currentTimeMillis() - start;
-				wQuery.setHasResultsSquin(hasResultsSquin);
+				wQuery.setResultSquin(rSquin);
+				wQuery.setHasResultsSquin(rSquin.contains("<http"));
 				wQuery.setTimeSquin(totalTime);
 
 				wQuery.setHasResultsWimu(false);
@@ -306,36 +316,44 @@ public class Util {
 			ret.add(wQuery);
 			System.out.println("Query " + ret.size() + " of " + setQueries.size() + " done");
 		}
-		//});
+		// });
 		return ret;
 	}
-	
+
 	public static void writeFile(Set<WimuTQuery> res, String fileName) {
 		try {
 			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+			PrintWriter writerIdQuery = new PrintWriter("idQuery.tsv", "UTF-8");
+			
 			int indQ = 0;
-			writer.println(
-					"idQuery\ttime(ms)\tdataset(s) name\tsize(bytes)\t"
-					+ "numberOfDatasets\t"
-					+ "SquinResults\t"
-					+ "TimeSquin"
-					+ "\tWimuTResults");
+			writer.println("idQuery\ttime(ms)\tdataset(s) name\tsize(bytes)\t" + "numberOfDatasets\t" + "SquinResults\t"
+					+ "TimeSquin\t" + "WimuTResults");
 			for (WimuTQuery wQuery : res) {
-				writer.println((++indQ) + "\t" 
-						+ wQuery.getTimeWimu() + "\t" 
-						+ wQuery.getDatasets() + "\t"
+				writer.println((++indQ) + "\t" + wQuery.getTimeWimu() + "\t" + wQuery.getDatasets() + "\t"
 						+ wQuery.getSumSizeDatasets() + "\t"
 						+ ((wQuery.getDatasets() != null) ? wQuery.getDatasets().size() : 0) + "\t"
-						+ wQuery.hasResultsSquin() + "\t" 
-						+ wQuery.getTimeSquin() + "\t"
-						+ wQuery.hasResultsWimu());
+						+ wQuery.hasResultsSquin() + "\t" + wQuery.getTimeSquin() + "\t" + wQuery.hasResultsWimu());
+				
+				writerIdQuery.println("#---"+ indQ + "\t" + wQuery.getQuery());
+				
+				File f = new File("results");
+				f.mkdir();
+				
+				PrintWriter writerWimuResults = new PrintWriter("results/result_wimu_q"+indQ+".tsv", "UTF-8");
+				writerWimuResults.println(wQuery.getResults());
+				writerWimuResults.close();
+				
+				PrintWriter writerSquinResults = new PrintWriter("results/result_squin_q"+indQ+".tsv", "UTF-8");
+				writerSquinResults.println(wQuery.getResultSquin());
+				writerSquinResults.close();
 			}
 			writer.close();
+			writerIdQuery.close();
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void writeFile(Map<String, String> mURIs, String fileName) {
 		try {
 			System.out.println("Writing file URI->Dataset: " + fileName);
@@ -364,8 +382,7 @@ public class Util {
 	/*
 	 * @includePrefix URI Lookup also with the prefix.
 	 */
-	public static Map<String, String> getDatasets(String cSparql)
-			throws InterruptedException, IOException {
+	public static Map<String, String> getDatasets(String cSparql) throws InterruptedException, IOException {
 		Map<String, String> ret = new HashMap<String, String>();
 
 //		String[] uris = null;
@@ -376,16 +393,12 @@ public class Util {
 //		}
 
 		Set<String> uris = extractUrls(cSparql);
-		
+
 		String dsWIMU = null;
 		for (String uri : uris) {
-			if (uri.startsWith("http")) {
-				uri = uri.substring(0, uri.indexOf(">"));
-				dsWIMU = getDsWIMU(uri);
-				if (dsWIMU != null) {
-					ret.put(uri, dsWIMU);
-				}
-				//ret.put(uri, dsWIMU);
+			dsWIMU = getDsWIMU(uri);
+			if (dsWIMU != null) {
+				ret.put(uri, dsWIMU);
 			}
 		}
 		return ret;
@@ -422,20 +435,49 @@ public class Util {
 
 		return sRet;
 	}
+
+	public static Set<String> extractUrls(String qSparql) throws UnsupportedEncodingException {
+		Set<String> containedUrls = new HashSet<String>();
+		
+		String fixSparql = replacePrefixes(qSparql);
+		
+		String urlRegex = "((https?|ftp|gopher|telnet|file):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
+		Pattern pattern = Pattern.compile(urlRegex, Pattern.CASE_INSENSITIVE);
+		Matcher urlMatcher = pattern.matcher(fixSparql);
+		
+		while (urlMatcher.find()) {
+			containedUrls.add(fixSparql.substring(urlMatcher.start(0), urlMatcher.end(0)));
+		}
+
+		return containedUrls;
+	}
 	
-	public static Set<String> extractUrls(String cSparql)
-	{
-	    Set<String> containedUrls = new HashSet<String>();
-	    String urlRegex = "((https?|ftp|gopher|telnet|file):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
-	    Pattern pattern = Pattern.compile(urlRegex, Pattern.CASE_INSENSITIVE);
-	    Matcher urlMatcher = pattern.matcher(cSparql);
+	public static String replacePrefixes(String query) throws UnsupportedEncodingException{
+		PrefixMapping pmap = PrefixMapping.Factory.create();
+//		Map<String, String> mPrefixURI = getMapPrefix(query);
+//		pmap.setNsPrefixes(mPrefixURI);
+	    pmap.setNsPrefixes(PrefixMapping.Extended);
+		Prologue prog = new Prologue();
+	    prog.setPrefixMapping(pmap);
+	    Query q = QueryFactory.parse(new Query(prog), query, null, null);
+	    //Set Prefix Mapping
+	    q.setPrefixMapping(pmap);
+	    //remove PrefixMapping so the prefixes will get replaced by the full uris
+	    q.setPrefixMapping(null);       
+	    return q.serialize();
+	}
 
-	    while (urlMatcher.find())
-	    {
-	        containedUrls.add(cSparql.substring(urlMatcher.start(0),
-	                urlMatcher.end(0)));
-	    }
-
-	    return containedUrls;
+	private static Map<String, String> getMapPrefix(String query) throws UnsupportedEncodingException {
+		Map<String, String> mPrefixURI = new HashMap<String, String>();
+		String s[] = query.split("\n");
+		for (String line : s) {
+			if(line.startsWith("PREFIX")) {
+				String uri = line.substring(line.indexOf("<")+1, line.indexOf(">"));
+				uri = URLEncoder.encode(uri, "UTF-8");
+				String prefixName = line.substring(7, line.indexOf(":"));
+				mPrefixURI.put(uri.trim(), prefixName.trim());
+			}
+		}
+		return mPrefixURI;
 	}
 }

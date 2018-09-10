@@ -11,10 +11,12 @@ import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.query.ResultSetFormatter;
 
 public class Squin {
 
-	public static boolean execSquin(String query) {
+	public static String execSquin(String query) {
+		String ret = null;
 		LinkTraversalBasedQueryEngine.register();
 		QueriedDataset qds = new QueriedDatasetImpl();
 		JenaIOBasedQueriedDataset qdsWrapper = new JenaIOBasedQueriedDataset( qds );
@@ -22,14 +24,15 @@ public class Squin {
 		Dataset dsARQ = new LinkedDataCacheWrappingDataset( ldcache );
 		QueryExecution qe = QueryExecutionFactory.create( query, dsARQ );
 		ResultSet results = qe.execSelect();
+		ret = ResultSetFormatter.asText(results);
 		//System.out.println(ResultSetFormatter.asText(results));
-		boolean hasResults = results.hasNext(); 
+		//boolean hasResults = results.hasNext(); 
 		try {
 			ldcache.shutdownNow( 4000 ); // 4 sec.
 		} catch ( Exception e ) {
 			System.err.println( "Shutting down the Linked Data cache failed: " + e.getMessage() );
 		}
-		return hasResults;
+		return ret;
 	}
 
 }

@@ -8,7 +8,7 @@ import org.apache.jena.query.ResultSet;
 public class WimuResult {
 	long size;
 	String bestDataset, query;
-	ResultSet result;
+	String result;
 	Map<String, String> datasets;
 	
 	public Map<String, String> getDatasets() {
@@ -35,13 +35,10 @@ public class WimuResult {
 	public void setQuery(String query) {
 		this.query = query;
 	}
-	public org.apache.jena.query.ResultSet getResult() {
+	public String getResult() {
 		return result;
 	}
-	public void setResult(org.apache.jena.query.ResultSet result) {
+	public void setResult(String result) {
 		this.result = result;
-	}
-	public void printResults() {
-		System.out.println(org.apache.jena.query.ResultSetFormatter.asText(this.result));
 	}
 }

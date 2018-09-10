@@ -8,10 +8,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
@@ -21,9 +18,8 @@ import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetFactory;
+import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.rdfhdt.hdt.hdt.HDT;
@@ -33,8 +29,8 @@ import org.tukaani.xz.XZInputStream;
 
 public class WimuSelection {
 
-	public static org.apache.jena.query.ResultSet execQueryRes(String cSparql, String dataset) throws IOException {
-		org.apache.jena.query.ResultSet ret = null;
+	public static String execQueryRes(String cSparql, String dataset) throws IOException {
+		String ret = null;
 		if (dataset == null)
 			return ret;
 
@@ -46,8 +42,8 @@ public class WimuSelection {
 		return ret;
 	}
 
-	private static org.apache.jena.query.ResultSet execQueryRDFRes(String cSparql, String dataset) {
-		org.apache.jena.query.ResultSet ret = null;
+	private static String execQueryRDFRes(String cSparql, String dataset) {
+		String ret = null;
 		File file = null;
 		try {
 			long start = System.currentTimeMillis();
@@ -124,7 +120,8 @@ public class WimuSelection {
 				}
 			}
 			if (resultSet != null) {
-				ret = org.apache.jena.query.ResultSetFactory.copyResults(resultSet);
+				ret = ResultSetFormatter.asText(resultSet);
+				//ret = org.apache.jena.query.ResultSetFactory.copyResults(resultSet);
 			}
 			total = System.currentTimeMillis() - start;
 			System.out.println("Time to query dataset: " + total + "ms");
@@ -239,8 +236,8 @@ public class WimuSelection {
 		return ret;
 	}
 
-	public static org.apache.jena.query.ResultSet execQueryHDTRes(String cSparql, String dataset) throws IOException {
-		org.apache.jena.query.ResultSet ret = null;
+	public static String execQueryHDTRes(String cSparql, String dataset) throws IOException {
+		String ret = null;
 		File file = null;
 		HDT hdt = null;
 		try {
@@ -266,8 +263,9 @@ public class WimuSelection {
 
 			QueryExecution qe = QueryExecutionFactory.create(query, model);
 			ResultSet results = qe.execSelect();
-			System.out.println(results.getResourceModel().size());
-			ret = ResultSetFactory.copyResults(results);
+			ret = ResultSetFormatter.asText(results);
+//			System.out.println(results.getResourceModel().size());
+//			ret = ResultSetFactory.copyResults(results);
 			total = System.currentTimeMillis() - start;
 			System.out.println("Time to query dataset: " + total + "ms");
 			qe.close();
@@ -283,39 +281,6 @@ public class WimuSelection {
 		return ret;
 	}
 
-	
-	public static WimuResult execQueryParallel(String cSparql, boolean onlyDatasets) throws Exception {
-		final WimuResult ret = new WimuResult();
-		long size = 0;
-		org.apache.jena.query.ResultSet res = null;
-		Map<String, String> mUDataset = Util.getDatasets(cSparql);
-		ret.setDatasets(mUDataset);
-		if (onlyDatasets) {
-			return ret;
-		}
-
-		mUDataset.values().parallelStream().forEach( ds -> {
-		//for (String ds : mUDataset.values()) {
-			try {
-				ret.setBestDataset(ds);
-				if ((ds != null) && ds.contains("https://hdt.lod.labs.vu.nl")) {
-					ret.setSize(execQueryLODAlot(cSparql, ds));
-					return;
-				}
-				ret.setSize(1);
-				ret.setResult(execQueryRes(cSparql, ds));
-				if (res == null)
-					return;
-
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		});
-		
-		return ret;
-	}
-	
-
 	public static WimuResult execQuery(String cSparql, boolean onlyDatasets) throws Exception {
 		WimuResult ret = new WimuResult();
 		long size = 0;
@@ -326,6 +291,7 @@ public class WimuSelection {
 			return ret;
 		}
 
+		String results = "";
 		for (String ds : mUDataset.values()) {
 			try {
 				ret.setBestDataset(ds);
@@ -334,20 +300,12 @@ public class WimuSelection {
 					ret.setSize(execQueryLODAlot(cSparql, ds));
 					continue;
 				}
-				res = execQueryRes(cSparql, ds);
-				if (res == null)
-					continue;
-				if (res.hasNext()) {
-					break;
-				}
-				// while (res.hasNext()) {
-				// size++;
-				// if (size > prevRes) {
-				// prevRes = size;
-				// dataset = ds;
-				// break;
-				// }
-				// }
+				results += execQueryRes(cSparql, ds);
+//				if (res == null)
+//					continue;
+//				if (res.hasNext()) {
+//					break;
+//				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -355,7 +313,7 @@ public class WimuSelection {
 		}
 		ret.setSize(size);
 		// ret.setBestDataset(dataset);
-		ret.setResult(res);
+		ret.setResult(results);
 		return ret;
 	}
 
@@ -375,31 +333,30 @@ public class WimuSelection {
 			return 0;
 	}
 
-	public static Set<String> executeQuery(String query, String dataset) {
-		Set<String> ret = new HashSet<String>();
-		org.apache.jena.query.ResultSet res = null;
+	public static String executeQuery(String query, String dataset) {
+		String ret = null;
 		if (dataset == null)
 			return ret;
 
 		try {
 			if (dataset.endsWith("hdt")) {
-				res = execQueryHDTRes(query, dataset);
+				ret = execQueryHDTRes(query, dataset);
 			} else {
-				res = execQueryRDFRes(query, dataset);
+				ret = execQueryRDFRes(query, dataset);
 			}
-			if (res == null){
-				return ret;
-			}
-			while (res.hasNext()) {
-				QuerySolution triple = res.next();
-				Iterator<String> itVars = triple.varNames();
-				String sTriple = "";
-				while(itVars.hasNext()){
-					String vName = itVars.next();
-					sTriple += "<("+vName+")" +triple.get(vName) + "> ";
-				}
-				ret.add(sTriple + ".");
-			}
+//			if (res == null){
+//				return ret;
+//			}
+//			while (res.hasNext()) {
+//				QuerySolution triple = res.next();
+//				Iterator<String> itVars = triple.varNames();
+//				String sTriple = "";
+//				while(itVars.hasNext()){
+//					String vName = itVars.next();
+//					sTriple += "<("+vName+")" +triple.get(vName) + "> ";
+//				}
+//				ret.add(sTriple + ".");
+//			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

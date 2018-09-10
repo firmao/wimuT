@@ -9,6 +9,23 @@ public class WimuTQuery {
 	long timeWimu, timeSquin;
 	boolean hasResultsWimu, hasResultsSquin;
 	String query, datasetWimu;
+	String results, resultSquin;
+	public String getResults() {
+		return results;
+	}
+
+	public String getResultSquin() {
+		return resultSquin;
+	}
+
+	public void setResultSquin(String resultSquin) {
+		this.resultSquin = resultSquin;
+	}
+
+	public void setResults(String results) {
+		this.results = results;
+	}
+
 	Map<String, String> datasets;
 
 	public Map<String, String> getDatasets() {
