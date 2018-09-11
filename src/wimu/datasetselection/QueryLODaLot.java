@@ -27,11 +27,10 @@ public class QueryLODaLot {
 		//String query = "SELECT DISTINCT ?s ?p	WHERE { <http://dbpedia.org/resource/Leipzig> ?s ?p }";
 		String query = "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" + 
 				"Select ?s ?o where { ?s owl:sameAs ?o }";
-		Set<String> res = execQuery(query);
-		for (String triple : res) {
-			System.out.println(triple);
-		}		
+		Set<String> res = execQuery(query);		
 		long totalTime = System.currentTimeMillis() - start;
+		File f = writeNtFile(res, "retTriplesLODaLOT.nt");
+		System.out.println("File generated: " + f.getAbsolutePath());
 		System.out.println("TotalTime: " + totalTime);
 	}
 
@@ -61,7 +60,7 @@ public class QueryLODaLot {
 	
 	private static Set<String> executeQueryJena(String qSparql, Set<String> triples) throws IOException {
 		Set<String> ret = new HashSet<String>();
-		File fTriples = writeNtFile(triples);
+		File fTriples = writeNtFile(triples, "cbdLODaLOT.nt");
 		
 		Model model = ModelFactory.createDefaultModel();
 		QueryExecutionBase qe = null;
@@ -87,8 +86,8 @@ public class QueryLODaLot {
 		return ret;
 	}
 
-	private static File writeNtFile(Set<String> triples) throws IOException {
-		File fRet = new File("cbdLODaLOT.nt");
+	private static File writeNtFile(Set<String> triples, String fName) throws IOException {
+		File fRet = new File(fName);
 		fRet.createNewFile();
 		PrintWriter writer = new PrintWriter(fRet.getAbsolutePath(), "UTF-8");
 		for (String triple : triples) {
@@ -105,6 +104,7 @@ public class QueryLODaLot {
 	private static Set<String> getCBD_LOD_a_lot(String uri) throws IOException {
 		Set<String> ret = new HashSet<String>();
 		ret.addAll(getData(uri, "s"));
+		ret.addAll(getData(uri, "p"));
 		ret.addAll(getData(uri, "o"));
 		return ret;
 	}
