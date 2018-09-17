@@ -534,4 +534,63 @@ public class Util {
 		qexec.close();
 		return ret;
 	}
+
+	public static Set<WimuTQuery> executeQueriesLODaLOT(Set<String> setQueries) {
+		final Set<WimuTQuery> ret = new HashSet<WimuTQuery>();
+		System.out.println("### Executing only using SPARQL LOD-A-LOT API ###");
+		// setQueries.parallelStream().forEach(query -> {
+		for (String query : setQueries) {
+			WimuTQuery wQuery = new WimuTQuery();
+			try {
+				long start = System.currentTimeMillis();
+				long totalTime = System.currentTimeMillis() - start;
+				wQuery.setResultSquin("");
+				wQuery.setHasResultsSquin(false);
+				wQuery.setTimeSquin(totalTime);
+
+				start = System.currentTimeMillis();
+				try {
+					// 10 minutes.
+			        TimeOutBlock timeoutBlock = new TimeOutBlock(600000);
+			        Runnable block=new Runnable() {
+			            @Override
+			            public void run() {
+			            	try {
+								//wRes.setAll(WimuSelection.execQuery(query, false));
+			            		Set<String> resLodAlot = QueryLODaLot.execQuery(query);
+			            		String retLODs = "";
+			            		for (String retLOD : resLodAlot) {
+									retLODs += retLOD;
+								}
+			            		wQuery.setResults(retLODs);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+			            }
+			        };
+			        timeoutBlock.addBlock(block);// execute the runnable block 
+			    } catch (Throwable e) {
+			        System.out.println("TIME-OUT-ERROR: " + e.getMessage());
+			        wQuery.setTimeoutError(true);
+			    }
+				
+				// WimuResult wRes = WimuSelection.execQueryParallel(query, false);
+				totalTime = System.currentTimeMillis() - start;
+				wQuery.setHasResultsWimu(false);
+				wQuery.setResultLODaLOT(wQuery.getResults().length() > 1);
+				wQuery.setResultDBpedia(false);
+				wQuery.setTimeWimu(totalTime);
+				wQuery.setQuery(query);
+				wQuery.setDatasetWimu(null);
+				wQuery.setDatasets(null);
+				wQuery.setResultsFromSquin(false);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			ret.add(wQuery);
+			System.out.println("Query " + ret.size() + " of " + setQueries.size() + " done");
+		}
+		// });
+		return ret;
+	}
 }

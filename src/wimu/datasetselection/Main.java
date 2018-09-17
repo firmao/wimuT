@@ -31,6 +31,8 @@ public class Main {
 			res = Util.executeQueriesSquin(setQueries);
 		} else if(args[1].equals("wimut")){
 			res = Util.executeQueriesWimuT(setQueries);
+		} else if(args[1].equals("lodalot")){
+			res = Util.executeQueriesLODaLOT(setQueries);
 		}
 		long totalTime = System.currentTimeMillis() - start;
 		Util.writeFile(res, "results.tsv");
