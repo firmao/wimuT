@@ -2,15 +2,25 @@ package org.wimu.datasetselection;
 
 import java.util.Map;
 
-import org.apache.jena.query.ResultSet;
-
-
 public class WimuResult {
 	long size;
 	String bestDataset, query;
 	String result;
 	Map<String, String> datasets;
+	boolean resultLODaLOT, resultDBpedia;
 	
+	public boolean isResultLODaLOT() {
+		return resultLODaLOT;
+	}
+	public void setResultLODaLOT(boolean resultLODaLOT) {
+		this.resultLODaLOT = resultLODaLOT;
+	}
+	public boolean isResultDBpedia() {
+		return resultDBpedia;
+	}
+	public void setResultDBpedia(boolean resultDBpedia) {
+		this.resultDBpedia = resultDBpedia;
+	}
 	public Map<String, String> getDatasets() {
 		return datasets;
 	}
@@ -40,5 +50,14 @@ public class WimuResult {
 	}
 	public void setResult(String result) {
 		this.result = result;
+	}
+	public void setAll(WimuResult wRes) {
+		this.setBestDataset(wRes.getBestDataset());
+		this.setResult(wRes.getResult());
+		this.setDatasets(wRes.getDatasets());
+		this.setSize(wRes.getSize());
+		this.setQuery(wRes.getQuery());
+		this.setResultLODaLOT(wRes.isResultLODaLOT());
+		this.setResultDBpedia(wRes.isResultDBpedia());
 	}
 }

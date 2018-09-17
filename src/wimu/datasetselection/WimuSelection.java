@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
@@ -55,7 +56,8 @@ public class WimuSelection {
 			long limSize = 5000000; // 5 MB
 			if (file.length() > limSize) {
 				System.err.println("File: " + file.getAbsolutePath() + " is bigger than " + limSize + " bytes");
-				return null;
+				ret = Util.execQueryEndPoint(cSparql, "http://dbpedia.org/sparql");
+				return ret;
 			}
 			file = unconpress(file);
 			long total = System.currentTimeMillis() - start;
@@ -284,7 +286,6 @@ public class WimuSelection {
 	public static WimuResult execQuery(String cSparql, boolean onlyDatasets) throws Exception {
 		WimuResult ret = new WimuResult();
 		long size = 0;
-		org.apache.jena.query.ResultSet res = null;
 		Map<String, String> mUDataset = Util.getDatasets(cSparql);
 		ret.setDatasets(mUDataset);
 		if (onlyDatasets) {
@@ -296,30 +297,40 @@ public class WimuSelection {
 			try {
 				ret.setBestDataset(ds);
 				size++;
+				if ((ds != null) && ds.contains("dbpedia")) {
+					String sDBpedia = Util.execQueryEndPoint(cSparql, "http://dbpedia.org/sparql");
+					if(sDBpedia.contains("http")) {
+						ret.setResultDBpedia(true);
+						results += sDBpedia;
+					}
+					continue;
+				}
 				if ((ds != null) && ds.contains("https://hdt.lod.labs.vu.nl")) {
 					ret.setSize(execQueryLODAlot(cSparql, ds));
 					continue;
 				}
 				results += execQueryRes(cSparql, ds);
-//				if (res == null)
-//					continue;
-//				if (res.hasNext()) {
-//					break;
-//				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			// });
 		}
 		ret.setSize(size);
-		// ret.setBestDataset(dataset);
+		if(!results.contains("http")) {
+			Set<String> resLodALot = QueryLODaLot.execQuery(cSparql);
+			if(resLodALot.size() > 0) {
+				results = "";
+				ret.setResultLODaLOT(true);
+				for (String triple : resLodALot) {
+					results += triple + "\n";
+				}
+			}
+		}
+		
 		ret.setResult(results);
 		return ret;
 	}
 
 	private static long execQueryLODAlot(String cSparql, String dataset) {
-		//System.out.println("Need to implement Sparql on: " + dataset);
-		//System.out.println("Query to LOD-a-lot: " + cSparql);
 		boolean onlyCheck = true;
 		boolean ret = true;
 		try {
@@ -360,6 +371,42 @@ public class WimuSelection {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return ret;
+	}
+
+	public static WimuResult execQuery(String query) throws IOException, InterruptedException {
+		WimuResult ret = new WimuResult();
+		long size = 0;
+		org.apache.jena.query.ResultSet res = null;
+		Set<String> resLODaLOT = QueryLODaLot.execQuery(query);
+		if(resLODaLOT.size() > 0) {
+			ret.setBestDataset("https://hdt.lod.labs.vu.nl");
+			ret.setSize(resLODaLOT.size());
+			String resTriples = "";
+			for (String triple : resLODaLOT) {
+				resTriples += triple + "\n";
+			}
+			ret.setResult(resTriples);
+			return ret;
+		}
+		
+		Map<String, String> mUDataset = Util.getDatasets(query);
+		ret.setDatasets(mUDataset);
+
+		String results = "";
+		for (String ds : mUDataset.values()) {
+			try {
+				ret.setBestDataset(ds);
+				if ((ds != null) && ds.contains("https://hdt.lod.labs.vu.nl")) {
+					continue;
+				}
+				results += execQueryRes(query, ds);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		ret.setSize(size);
+		ret.setResult(results);
 		return ret;
 	}
 

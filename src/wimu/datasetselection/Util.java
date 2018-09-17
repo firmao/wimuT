@@ -13,12 +13,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.Prologue;
 
@@ -240,15 +245,45 @@ public class Util {
 				wQuery.setTimeSquin(totalTime);
 
 				start = System.currentTimeMillis();
-				WimuResult wRes = WimuSelection.execQuery(query, false);
+				//WimuResult wRes = WimuSelection.execQuery(query, false);
+				final WimuResult wRes = new WimuResult();
+				try {
+					// 10 minutes.
+			        TimeOutBlock timeoutBlock = new TimeOutBlock(600000);
+			        Runnable block=new Runnable() {
+			            @Override
+			            public void run() {
+			            	try {
+								wRes.setAll(WimuSelection.execQuery(query, false));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+			            }
+			        };
+			        timeoutBlock.addBlock(block);// execute the runnable block 
+			    } catch (Throwable e) {
+			        System.out.println("TIME-OUT-ERROR: " + e.getMessage());
+			        wQuery.setTimeoutError(true);
+			    }
+				
 				// WimuResult wRes = WimuSelection.execQueryParallel(query, false);
 				totalTime = System.currentTimeMillis() - start;
-				wQuery.setHasResultsWimu(wRes.getResult().contains("<http"));
+				if(wRes.getResult() != null) {
+					wQuery.setHasResultsWimu(wRes.getResult().contains("<http"));
+				}
+				wQuery.setResultLODaLOT(wRes.isResultLODaLOT());
+				wQuery.setResultDBpedia(wRes.isResultDBpedia());
 				wQuery.setTimeWimu(totalTime);
 				wQuery.setQuery(query);
 				wQuery.setDatasetWimu(wRes.getBestDataset());
 				wQuery.setDatasets(wRes.getDatasets());
-				wQuery.setResults(wRes.getResult());
+				if((wQuery.hasResultsWimu()==false) && (wQuery.hasResultsSquin()==true)) {
+					System.out.println("### WimuT getting results using SQUIN algorithm. ###");
+					wQuery.setResultsFromSquin(true);
+					wQuery.setResults(wQuery.getResultSquin());
+				}else {
+					wQuery.setResults(wRes.getResult());
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -259,7 +294,7 @@ public class Util {
 		return ret;
 	}
 
-	public static Set<WimuTQuery> executeAllQueriesWimuT(Set<String> setQueries) {
+	public static Set<WimuTQuery> executeQueriesWimuT(Set<String> setQueries) {
 		final Set<WimuTQuery> ret = new HashSet<WimuTQuery>();
 
 		System.out.println("###### ONLY WIMU_T #########");
@@ -270,6 +305,7 @@ public class Util {
 				wQuery.setHasResultsSquin(false);
 				wQuery.setTimeSquin(0);
 				long start = System.currentTimeMillis();
+				//WimuResult wRes = WimuSelection.execQuery(query);
 				WimuResult wRes = WimuSelection.execQuery(query, false);
 				// WimuResult wRes = WimuSelection.execQueryParallel(query, false);
 				long totalTime = System.currentTimeMillis() - start;
@@ -289,7 +325,7 @@ public class Util {
 		return ret;
 	}
 
-	public static Set<WimuTQuery> executeAllQueriesSquin(Set<String> setQueries) {
+	public static Set<WimuTQuery> executeQueriesSquin(Set<String> setQueries) {
 		final Set<WimuTQuery> ret = new HashSet<WimuTQuery>();
 
 		System.out.println("####### ONLY SQUIN ############");
@@ -323,18 +359,24 @@ public class Util {
 	public static void writeFile(Set<WimuTQuery> res, String fileName) {
 		try {
 			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-			PrintWriter writerIdQuery = new PrintWriter("idQuery.tsv", "UTF-8");
+			PrintWriter writerIdQuery = new PrintWriter("idQuery.txt", "UTF-8");
 			
 			int indQ = 0;
 			writer.println("idQuery\ttime(ms)\tdataset(s) name\tsize(bytes)\t" + "numberOfDatasets\t" + "SquinResults\t"
-					+ "TimeSquin\t" + "WimuTResults");
+					+ "TimeSquin\tWimuTResults\tHasResultsLODaLOT\tHasResultsDBpedia"
+					+ "\tTimeoutError\tResultsFromSquin");
 			for (WimuTQuery wQuery : res) {
 				writer.println((++indQ) + "\t" + wQuery.getTimeWimu() + "\t" + wQuery.getDatasets() + "\t"
 						+ wQuery.getSumSizeDatasets() + "\t"
 						+ ((wQuery.getDatasets() != null) ? wQuery.getDatasets().size() : 0) + "\t"
-						+ wQuery.hasResultsSquin() + "\t" + wQuery.getTimeSquin() + "\t" + wQuery.hasResultsWimu());
+						+ wQuery.hasResultsSquin() + "\t" + wQuery.getTimeSquin() 
+						+ "\t" + wQuery.hasResultsWimu()
+						+ "\t" + wQuery.isResultLODaLOT()
+						+ "\t" + wQuery.isResultDBpedia()
+						+ "\t" + wQuery.isTimeoutError()
+						+ "\t" + wQuery.isResultsFromSquin());
 				
-				writerIdQuery.println("#---"+ indQ + "\t" + wQuery.getQuery());
+				writerIdQuery.println("#------"+ indQ + "\n" + wQuery.getQuery() + "\n#------");
 				
 				File f = new File("results");
 				f.mkdir();
@@ -479,5 +521,17 @@ public class Util {
 			}
 		}
 		return mPrefixURI;
+	}
+
+	public static String execQueryEndPoint(String cSparql, String endPoint) {
+		System.out.println("Query endPoint: "  + endPoint);
+		com.hp.hpl.jena.query.Query query = com.hp.hpl.jena.query.QueryFactory.create(cSparql);
+		com.hp.hpl.jena.query.QueryExecution qexec = com.hp.hpl.jena.query.QueryExecutionFactory.sparqlService(endPoint, query);
+
+		com.hp.hpl.jena.query.ResultSet results = qexec.execSelect();
+		String ret = com.hp.hpl.jena.query.ResultSetFormatter.asText(results);       
+
+		qexec.close();
+		return ret;
 	}
 }

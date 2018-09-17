@@ -28,9 +28,9 @@ public class Main {
 		if(args[1].equals("all")){
 			res = Util.executeAllQueries(setQueries);
 		} else if(args[1].equals("squin")){
-			res = Util.executeAllQueriesSquin(setQueries);
+			res = Util.executeQueriesSquin(setQueries);
 		} else if(args[1].equals("wimut")){
-			res = Util.executeAllQueriesWimuT(setQueries);
+			res = Util.executeQueriesWimuT(setQueries);
 		}
 		long totalTime = System.currentTimeMillis() - start;
 		Util.writeFile(res, "results.tsv");

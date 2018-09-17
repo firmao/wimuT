@@ -10,6 +10,33 @@ public class WimuTQuery {
 	boolean hasResultsWimu, hasResultsSquin;
 	String query, datasetWimu;
 	String results, resultSquin;
+	boolean resultLODaLOT, resultDBpedia, resultsFromSquin, timeoutError;
+	
+	public boolean isResultsFromSquin() {
+		return resultsFromSquin;
+	}
+	public void setResultsFromSquin(boolean resultsFromSquin) {
+		this.resultsFromSquin = resultsFromSquin;
+	}
+	public boolean isTimeoutError() {
+		return timeoutError;
+	}
+	public void setTimeoutError(boolean timeoutError) {
+		this.timeoutError = timeoutError;
+	}
+	public boolean isResultLODaLOT() {
+		return resultLODaLOT;
+	}
+	public void setResultLODaLOT(boolean resultLODaLOT) {
+		this.resultLODaLOT = resultLODaLOT;
+	}
+	public boolean isResultDBpedia() {
+		return resultDBpedia;
+	}
+	public void setResultDBpedia(boolean resultDBpedia) {
+		this.resultDBpedia = resultDBpedia;
+	}
+	
 	public String getResults() {
 		return results;
 	}
