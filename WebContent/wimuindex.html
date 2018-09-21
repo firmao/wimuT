@@ -20,7 +20,7 @@
 			q = "SELECT DISTINCT ?s ?p	WHERE { <http://acm.rkbexplorer.com/id/93601> ?s ?p }";
 		}
 		else if ( idx == 2 ) {
-			q = "SELECT DISTINCT ?s ?p	WHERE { <http://oai.rkbexplorer.com/id/opus.bath.ac.uk/person-78b3db1160c89486987cdcc0a7c3909e-4795f9a6c2ef498a5350b52ddd3dcd93> ?s ?p }";
+			q = "SELECT DISTINCT ?s ?p	WHERE { <http://citeseer.rkbexplorer.com/id/resource-CSP25940-be11bb484cf705c86b1b6280eff943b9> ?s ?p }";
 		}
 		else if ( idx == 3 ) {
 			q = "SELECT DISTINCT ?s ?p	WHERE { <http://mpii.de/yago/resource/The_Last_Ninja> ?s ?p }";
@@ -54,7 +54,7 @@
 			<ol style="margin-top:0px">
 				<li><a href="javascript:selectQuery(0);">HDT 1</a></li>
 				<li><a href="javascript:selectQuery(1);">HDT 2</a></li>
-				<li><a href="javascript:selectQuery(2);">SPARQL EndPoint</a></li>
+				<li><a href="javascript:selectQuery(2);">HDT 3</a></li>
 				<li><a href="javascript:selectQuery(3);">WIMU CBD</a></li>
 				<li><a href="javascript:selectQuery(4);">HDT 3</a></li>
 				<li><a href="javascript:selectQuery(5);">SQUIN 1</a></li>
@@ -63,23 +63,32 @@
 			</ol>
 		</div>
 	<form id="queryForm" action="querywimu" method="get">
-		
 		<fieldset style="border:none">
 		<textarea name="query" cols="100" rows="15"></textarea>
 		<br/>
 		Preferred Result Format:
-		<input type="radio" name="output" value="xml" checked="checked"/> XML
-		<input type="radio" name="output" value="json"/> JSON
+		<input type="radio" name="output" value="json" checked="checked"/> JSON
 		<br/>
-		<input type="checkbox" name="ignoreQueryCache" value="true"/> Ignore query result cache
+		<input type="checkbox" name="ignoreQueryCache" value="true" checked="checked"/> Ignore query result cache
+		<br/>
+		<input type="checkbox" name="chkAllQueries" value="true"/> Execute all sample queries
+		<br/>
+		<input type="checkbox" name="chkWimu" value="true"/> Execute only on WimuTraversal
+		<br/>
+		<input type="checkbox" name="chkSquin" value="true"/> Execute only on SQUIN
 		<br/>
 		<input type="submit" value="Execute" />
 		</fieldset>
 	</form>
 	
+	
 	<p>
 		Learn more about SQUIN on the
 		<a href="http://squin.sourceforge.net/">SQUIN website</a>.
+	</p>
+	<p>
+		Learn more about WIMU on the
+		<a href="http://wimu.aksw.org/">WIMU website</a>.
 	</p>
 </body>
 </html>
