@@ -27,16 +27,17 @@ public class QueryLODaLot {
 		//String query = "SELECT DISTINCT ?s ?p	WHERE { <http://dbpedia.org/resource/Leipzig> ?s ?p }";
 		//String query = "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" + 
 		//		"Select ?s ?o where { ?s owl:sameAs ?o }";
-		String query = "SELECT DISTINCT  ?subject ?predicate ?object\n" + 
-				"WHERE\n" + 
-				"  {   { <http://dbpedia.org/resource/Barnaby_Rudge> ?predicate ?object }\n" + 
-				"    UNION\n" + 
-				"      { ?subject ?predicate <http://dbpedia.org/resource/Barnaby_Rudge> }\n" + 
-				"    FILTER ( ( lang(?object) = \"en\" ) || ( lang(?object) = \"\" ) )\n" + 
-				"  }\n" + 
-				"ORDER BY ?predicate ?subject\n" + 
-				"OFFSET  0\n" + 
-				"LIMIT   200";
+
+//		String query = "SELECT DISTINCT  ?subject ?predicate ?object\n" + 
+//				"WHERE\n" + 
+//				"  {   { <http://dbpedia.org/resource/Barnaby_Rudge> ?predicate ?object }\n" + 
+//				"    UNION\n" + 
+//				"      { ?subject ?predicate <http://dbpedia.org/resource/Barnaby_Rudge> }\n" + 
+//				"    FILTER ( ( lang(?object) = \"en\" ) || ( lang(?object) = \"\" ) )\n" + 
+//				"  }\n" + 
+//				"ORDER BY ?predicate ?subject\n" + 
+//				"OFFSET  0\n" + 
+//				"LIMIT   200";
 		
 //		String query = "PREFIX  dc:   <http://purl.org/dc/elements/1.1/>\n" + 
 //				"PREFIX  :     <http://dbpedia.org/resource/>\n" + 
@@ -54,6 +55,11 @@ public class QueryLODaLot {
 //				"  { :Peugeot ?b ?c .\n" + 
 //				"    ?a foaf:name \"Peugeot S.A.\"@en\n" + 
 //				"  }";
+		String query = "select ?o2 where {\n" + 
+				"<http://dbpedia.org/resource/Germany> <http://dbpedia.org/ontology/capital> ?o .\n" + 
+				"?o <http://dbpedia.org/ontology/populationTotal> ?o2\n" + 
+				"}";
+		
 		Set<String> res = execQuery(query);		
 		long totalTime = System.currentTimeMillis() - start;
 		File f = writeNtFile(res, "retTriplesLODaLOT.nt");
@@ -70,6 +76,7 @@ public class QueryLODaLot {
 			Set<String> cbd = getCBD_LOD_a_lot(uri);
 			triples.addAll(cbd);
 		}
+		System.out.println("Including in Jena: " + triples.size());
 		ret.addAll(executeQueryJena(qSparql, triples));
 		
 		return ret;

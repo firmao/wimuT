@@ -305,11 +305,32 @@ public class Util {
 				wQuery.setHasResultsSquin(false);
 				wQuery.setTimeSquin(0);
 				long start = System.currentTimeMillis();
-				//WimuResult wRes = WimuSelection.execQuery(query);
-				WimuResult wRes = WimuSelection.execQuery(query, false);
-				// WimuResult wRes = WimuSelection.execQueryParallel(query, false);
+				final WimuResult wRes = new WimuResult();
+				try {
+					// 10 minutes.
+			        TimeOutBlock timeoutBlock = new TimeOutBlock(600000);
+			        Runnable block=new Runnable() {
+			            @Override
+			            public void run() {
+			            	try {
+								wRes.setAll(WimuSelection.execQuery(query, false));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+			            }
+			        };
+			        timeoutBlock.addBlock(block);// execute the runnable block 
+			    } catch (Throwable e) {
+			        System.out.println("TIME-OUT-ERROR: " + e.getMessage());
+			        wQuery.setTimeoutError(true);
+			    }
 				long totalTime = System.currentTimeMillis() - start;
-				wQuery.setHasResultsWimu(wRes.getResult().contains("<http"));
+				
+				if(wRes.getResult() != null) {
+					wQuery.setHasResultsWimu(wRes.getResult().contains("<http"));
+				}
+				wQuery.setResultLODaLOT(wRes.isResultLODaLOT());
+				wQuery.setResultDBpedia(wRes.isResultDBpedia());
 				wQuery.setTimeWimu(totalTime);
 				wQuery.setQuery(query);
 				wQuery.setDatasetWimu(wRes.getBestDataset());
@@ -376,7 +397,7 @@ public class Util {
 						+ "\t" + wQuery.isTimeoutError()
 						+ "\t" + wQuery.isResultsFromSquin());
 				
-				writerIdQuery.println("#------"+ indQ + "\n" + wQuery.getQuery() + "\n#------");
+				writerIdQuery.println("#------"+ indQ + "\n" + wQuery.getQuery());
 				
 				File f = new File("results");
 				f.mkdir();
@@ -390,6 +411,7 @@ public class Util {
 				writerSquinResults.close();
 			}
 			writer.close();
+			writerIdQuery.println("#------");
 			writerIdQuery.close();
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			e.printStackTrace();
