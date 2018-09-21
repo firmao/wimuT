@@ -4,6 +4,8 @@ Given a SPARQL query, which dataset(s) can execute such query? A traversal SPARQ
 Experiments:
 `nohup java -Xmx10G -jar wimuT.jar queries.txt <TYPE> &`
 
+(wimuT.jar)[https://doi.org/10.6084/m9.figshare.7117052]
+
 Where `<TYPE>` can be:
  - wimut -> To execute only wimuT
  - squin -> To execute only SQUIN
