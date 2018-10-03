@@ -31,7 +31,8 @@ import com.google.gson.Gson;
 
 public class Util {
 	public static Map<String, String> mUriDataset = new HashMap<String, String>();
-
+	public static Map<String, Integer> mAppRes = new HashMap<String, Integer>();
+	
 	public static void loadFileMap(String mFile) throws IOException {
 		System.out.println("Loading file: " + mFile);
 		File f = new File(mFile);
@@ -238,7 +239,7 @@ public class Util {
 			try {
 				long start = System.currentTimeMillis();
 				//boolean hasResultsSquin = Squin.execSquin(query);
-				String rSquin = Squin.execSquin(query);
+				String rSquin = Traversal.execTraversal(query);
 				long totalTime = System.currentTimeMillis() - start;
 				wQuery.setResultSquin(rSquin);
 				wQuery.setHasResultsSquin(rSquin.contains("<http"));
@@ -287,8 +288,14 @@ public class Util {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			wQuery.setMapAppResults(Util.mAppRes);
 			ret.add(wQuery);
 			System.out.println("Query " + ret.size() + " of " + setQueries.size() + " done");
+			//wQuery.getMapAppResults().keySet().forEach( app -> {
+			for (String app : wQuery.getMapAppResults().keySet()) {
+				System.out.println("#------ Approach: " + app + "---NumResults:" + wQuery.getMapAppResults().get(app));
+			}  
+			//});
 		}
 		// });
 		return ret;
@@ -346,17 +353,17 @@ public class Util {
 		return ret;
 	}
 
-	public static Set<WimuTQuery> executeQueriesSquin(Set<String> setQueries) {
+	public static Set<WimuTQuery> executeQueriesTraversal(Set<String> setQueries) {
 		final Set<WimuTQuery> ret = new HashSet<WimuTQuery>();
 
-		System.out.println("####### ONLY SQUIN ############");
+		System.out.println("####### ONLY Traversal based on SQUIN ############");
 		// setQueries.parallelStream().forEach(query -> {
 		for (String query : setQueries) {
 			WimuTQuery wQuery = new WimuTQuery();
 			try {
 				long start = System.currentTimeMillis();
 				//boolean hasResultsSquin = Squin.execSquin(query);
-				String rSquin = Squin.execSquin(query);
+				String rSquin = Traversal.execTraversal(query);
 				long totalTime = System.currentTimeMillis() - start;
 				wQuery.setResultSquin(rSquin);
 				wQuery.setHasResultsSquin(rSquin.contains("<http"));
@@ -383,9 +390,9 @@ public class Util {
 			PrintWriter writerIdQuery = new PrintWriter("idQuery.txt", "UTF-8");
 			
 			int indQ = 0;
-			writer.println("idQuery\ttime(ms)\tdataset(s) name\tsize(bytes)\t" + "numberOfDatasets\t" + "SquinResults\t"
+			writer.println("idQuery\ttime(ms)\tdataset(s) name\tsize(bytes)\t" + "numberOfDatasets\t" + "Traversal\t"
 					+ "TimeSquin\tWimuTResults\tHasResultsLODaLOT\tHasResultsDBpedia"
-					+ "\tTimeoutError\tResultsFromSquin");
+					+ "\tTimeoutError\tMoreWimuTraversal");
 			for (WimuTQuery wQuery : res) {
 				writer.println((++indQ) + "\t" + wQuery.getTimeWimu() + "\t" + wQuery.getDatasets() + "\t"
 						+ wQuery.getSumSizeDatasets() + "\t"
@@ -397,8 +404,13 @@ public class Util {
 						+ "\t" + wQuery.isTimeoutError()
 						+ "\t" + wQuery.isResultsFromSquin());
 				
-				writerIdQuery.println("#------"+ indQ + "\n" + wQuery.getQuery());
-				
+				writerIdQuery.println("#------"+ indQ + "\n");
+				//wQuery.getMapAppResults().keySet().forEach( app -> {
+				for (String app : wQuery.getMapAppResults().keySet()) {
+					writerIdQuery.println("#------ Approach: " + app + "---NumResults:" + wQuery.getMapAppResults().get(app)); 
+				}
+				//});
+				writerIdQuery.println("#------\n" + wQuery.getQuery());
 				File f = new File("results");
 				f.mkdir();
 				
@@ -551,8 +563,12 @@ public class Util {
 		com.hp.hpl.jena.query.QueryExecution qexec = com.hp.hpl.jena.query.QueryExecutionFactory.sparqlService(endPoint, query);
 
 		com.hp.hpl.jena.query.ResultSet results = qexec.execSelect();
-		String ret = com.hp.hpl.jena.query.ResultSetFormatter.asText(results);       
-
+		
+		int count = com.hp.hpl.jena.query.ResultSetFormatter.consume(results);
+		Util.updateCount("EndPoint", count);
+		String ret = "EndPoint: " + count;
+		//String ret = com.hp.hpl.jena.query.ResultSetFormatter.asText(results);
+		
 		qexec.close();
 		return ret;
 	}
@@ -614,5 +630,12 @@ public class Util {
 		}
 		// });
 		return ret;
+	}
+
+	public static void updateCount(String appName, int count) {
+		if(mAppRes.containsKey(appName)) {
+			count += Util.mAppRes.get(appName);	
+		}
+		mAppRes.put(appName, count);
 	}
 }

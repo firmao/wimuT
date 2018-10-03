@@ -28,7 +28,7 @@ public class Main {
 		if(args[1].equals("all")){
 			res = Util.executeAllQueries(setQueries);
 		} else if(args[1].equals("squin")){
-			res = Util.executeQueriesSquin(setQueries);
+			res = Util.executeQueriesTraversal(setQueries);
 		} else if(args[1].equals("wimut")){
 			res = Util.executeQueriesWimuT(setQueries);
 		} else if(args[1].equals("lodalot")){

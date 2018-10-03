@@ -3,6 +3,7 @@ package org.wimu.datasetselection;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 
 public class WimuTQuery {
@@ -11,6 +12,7 @@ public class WimuTQuery {
 	String query, datasetWimu;
 	String results, resultSquin;
 	boolean resultLODaLOT, resultDBpedia, resultsFromSquin, timeoutError;
+	Map<String, Integer> mapAppResults = new HashMap<String, Integer>();
 	
 	public boolean isResultsFromSquin() {
 		return resultsFromSquin;
@@ -130,5 +132,12 @@ public class WimuTQuery {
 			}
 		}
 		return ret;
+	}
+	public Map<String, Integer> getMapAppResults() {
+		return this.mapAppResults;
+	}
+	public void setMapAppResults(Map<String, Integer> mapAppResults) {
+		this.mapAppResults.putAll(mapAppResults);
+		Util.mAppRes.clear();
 	}
 }

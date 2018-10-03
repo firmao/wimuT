@@ -25,8 +25,8 @@ public class QueryLODaLot {
 	public static void main(String[] args) throws IOException {
 		long start = System.currentTimeMillis();
 		//String query = "SELECT DISTINCT ?s ?p	WHERE { <http://dbpedia.org/resource/Leipzig> ?s ?p }";
-		//String query = "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" + 
-		//		"Select ?s ?o where { ?s owl:sameAs ?o }";
+		String query = "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" + 
+				"Select ?s ?o where { ?s owl:sameAs ?o }";
 
 //		String query = "SELECT DISTINCT  ?subject ?predicate ?object\n" + 
 //				"WHERE\n" + 
@@ -55,10 +55,10 @@ public class QueryLODaLot {
 //				"  { :Peugeot ?b ?c .\n" + 
 //				"    ?a foaf:name \"Peugeot S.A.\"@en\n" + 
 //				"  }";
-		String query = "select ?o2 where {\n" + 
-				"<http://dbpedia.org/resource/Germany> <http://dbpedia.org/ontology/capital> ?o .\n" + 
-				"?o <http://dbpedia.org/ontology/populationTotal> ?o2\n" + 
-				"}";
+//		String query = "select ?o2 where {\n" + 
+//				"<http://dbpedia.org/resource/Germany> <http://dbpedia.org/ontology/capital> ?o .\n" + 
+//				"?o <http://dbpedia.org/ontology/populationTotal> ?o2\n" + 
+//				"}";
 		
 		Set<String> res = execQuery(query);		
 		long totalTime = System.currentTimeMillis() - start;
@@ -78,6 +78,8 @@ public class QueryLODaLot {
 		}
 		System.out.println("Including in Jena: " + triples.size());
 		ret.addAll(executeQueryJena(qSparql, triples));
+		
+		Util.updateCount("sparqlALot", ret.size());
 		
 		return ret;
 	}
