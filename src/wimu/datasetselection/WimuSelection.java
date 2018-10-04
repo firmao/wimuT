@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -123,7 +124,7 @@ public class WimuSelection {
 			}
 			if (resultSet != null) {
 				ret = ResultSetFormatter.asText(resultSet);
-				//ret = org.apache.jena.query.ResultSetFactory.copyResults(resultSet);
+				// ret = org.apache.jena.query.ResultSetFactory.copyResults(resultSet);
 			}
 			total = System.currentTimeMillis() - start;
 			System.out.println("Time to query dataset: " + total + "ms");
@@ -245,13 +246,13 @@ public class WimuSelection {
 		try {
 			System.out.println("Dataset: " + dataset);
 			long start = System.currentTimeMillis();
-			if(dataset.startsWith("http")){
+			if (dataset.startsWith("http")) {
 				URL url = new URL(dataset);
 				file = new File(Util.getURLFileName(url));
 				if (!file.exists()) {
 					FileUtils.copyURLToFile(url, file);
 				}
-			} else{
+			} else {
 				file = new File(dataset);
 			}
 			file = unconpress(file);
@@ -299,7 +300,7 @@ public class WimuSelection {
 				size++;
 				if ((ds != null) && ds.contains("dbpedia")) {
 					String sDBpedia = Util.execQueryEndPoint(cSparql, "http://dbpedia.org/sparql");
-					if(sDBpedia.contains("http")) {
+					if (sDBpedia.contains("http")) {
 						ret.setResultDBpedia(true);
 						results += sDBpedia;
 					}
@@ -315,9 +316,9 @@ public class WimuSelection {
 			}
 		}
 		ret.setSize(size);
-		if(!results.contains("http")) {
+		if (!results.contains("http")) {
 			Set<String> resLodALot = QueryLODaLot.execQuery(cSparql);
-			if(resLodALot.size() > 0) {
+			if (resLodALot.size() > 0) {
 				results = "";
 				ret.setResultLODaLOT(true);
 				for (String triple : resLodALot) {
@@ -325,7 +326,7 @@ public class WimuSelection {
 				}
 			}
 		}
-		
+
 		ret.setResult(results);
 		return ret;
 	}
@@ -338,7 +339,7 @@ public class WimuSelection {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		if(ret)
+		if (ret)
 			return 2;
 		else
 			return 0;
@@ -379,7 +380,7 @@ public class WimuSelection {
 		long size = 0;
 		org.apache.jena.query.ResultSet res = null;
 		Set<String> resLODaLOT = QueryLODaLot.execQuery(query);
-		if(resLODaLOT.size() > 0) {
+		if (resLODaLOT.size() > 0) {
 			ret.setBestDataset("https://hdt.lod.labs.vu.nl");
 			ret.setSize(resLODaLOT.size());
 			String resTriples = "";
@@ -389,7 +390,7 @@ public class WimuSelection {
 			ret.setResult(resTriples);
 			return ret;
 		}
-		
+
 		Map<String, String> mUDataset = Util.getDatasets(query);
 		ret.setDatasets(mUDataset);
 
@@ -407,6 +408,112 @@ public class WimuSelection {
 		}
 		ret.setSize(size);
 		ret.setResult(results);
+		return ret;
+	}
+
+	public static WimuResult execQuery(String cSparql, boolean b, long timeout)
+			throws InterruptedException, IOException {
+		long spliTimeout = timeout / 3;
+		WimuResult ret = new WimuResult();
+		long size = 0;
+		Map<String, String> mUDataset = Util.getDatasets(cSparql);
+		ret.setDatasets(mUDataset);
+
+		final StringBuffer results = new StringBuffer();
+		for (String ds : mUDataset.values()) {
+			ret.setBestDataset(ds);
+			size++;
+			if ((ds != null) && ds.contains("dbpedia")) {
+
+				try {
+					TimeOutBlock timeoutBlock = new TimeOutBlock(spliTimeout);
+					Runnable block = new Runnable() {
+						@Override
+						public void run() {
+							String sDBpedia = Util.execQueryEndPoint(cSparql, "http://dbpedia.org/sparql");
+							if (sDBpedia.contains("http")) {
+								ret.setResultDBpedia(true);
+								results.append(sDBpedia);
+							}
+						}
+					};
+					timeoutBlock.addBlock(block);// execute the runnable block
+				} catch (Throwable e) {
+					System.out.println("TIME-OUT-ERROR(execQueryEndPoint): " + e.getMessage());
+					continue;
+				}
+				continue;
+			}
+			if ((ds != null) && ds.contains("https://hdt.lod.labs.vu.nl")) {
+
+				try {
+					TimeOutBlock timeoutBlock = new TimeOutBlock(spliTimeout);
+					Runnable block = new Runnable() {
+						@Override
+						public void run() {
+							ret.setSize(execQueryLODAlot(cSparql, ds));
+						}
+					};
+					timeoutBlock.addBlock(block);// execute the runnable block
+				} catch (Throwable e) {
+					System.out.println("TIME-OUT-ERROR(execQueryEndPoint): " + e.getMessage());
+					continue;
+				}
+
+				continue;
+			}
+
+			try {
+				TimeOutBlock timeoutBlock = new TimeOutBlock(spliTimeout);
+				Runnable block = new Runnable() {
+					@Override
+					public void run() {
+						try {
+							results.append(execQueryRes(cSparql, ds));
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				};
+				timeoutBlock.addBlock(block);// execute the runnable block
+			} catch (Throwable e) {
+				System.out.println("TIME-OUT-ERROR(execQueryEndPoint): " + e.getMessage());
+				continue;
+			}
+		}
+		ret.setSize(size);
+		if (!results.toString().contains("http")) {
+			final Set<String> resLodALot = new HashSet<String>();
+
+			try {
+				TimeOutBlock timeoutBlock = new TimeOutBlock(spliTimeout);
+				Runnable block = new Runnable() {
+					@Override
+					public void run() {
+						try {
+							resLodALot.addAll(QueryLODaLot.execQuery(cSparql));
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				};
+				timeoutBlock.addBlock(block);// execute the runnable block
+			} catch (Throwable e) {
+				System.out.println("TIME-OUT-ERROR(execQueryEndPoint): " + e.getMessage());
+			}
+
+			if (resLodALot.size() > 0) {
+				results.delete(0, results.length());
+				ret.setResultLODaLOT(true);
+				for (String triple : resLodALot) {
+					results.append(triple + "\n");
+				}
+			}
+		}
+
+		ret.setResult(results.toString());
 		return ret;
 	}
 

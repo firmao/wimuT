@@ -248,24 +248,9 @@ public class Util {
 				start = System.currentTimeMillis();
 				//WimuResult wRes = WimuSelection.execQuery(query, false);
 				final WimuResult wRes = new WimuResult();
-				try {
-					// 10 minutes.
-			        TimeOutBlock timeoutBlock = new TimeOutBlock(600000);
-			        Runnable block=new Runnable() {
-			            @Override
-			            public void run() {
-			            	try {
-								wRes.setAll(WimuSelection.execQuery(query, false));
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-			            }
-			        };
-			        timeoutBlock.addBlock(block);// execute the runnable block 
-			    } catch (Throwable e) {
-			        System.out.println("TIME-OUT-ERROR: " + e.getMessage());
-			        wQuery.setTimeoutError(true);
-			    }
+				
+				long timeout = 600000; //10 minutes
+				wRes.setAll(WimuSelection.execQuery(query, false, timeout));
 				
 				// WimuResult wRes = WimuSelection.execQueryParallel(query, false);
 				totalTime = System.currentTimeMillis() - start;
@@ -558,18 +543,37 @@ public class Util {
 	}
 
 	public static String execQueryEndPoint(String cSparql, String endPoint) {
-		System.out.println("Query endPoint: "  + endPoint);
-		com.hp.hpl.jena.query.Query query = com.hp.hpl.jena.query.QueryFactory.create(cSparql);
-		com.hp.hpl.jena.query.QueryExecution qexec = com.hp.hpl.jena.query.QueryExecutionFactory.sparqlService(endPoint, query);
+		System.out.println("Query endPoint: " + endPoint);
+		String ret = "";
+		final long offsetSize = 9999;
+		long offset = 0;
+		do {
+			String sSparql = cSparql;
+			int indOffset = cSparql.toLowerCase().indexOf("offset"); 
+			if(indOffset > 0) {
+				sSparql = cSparql.substring(0, indOffset) + " offset " + offset + " limit " + offsetSize;
+			}	
+			com.hp.hpl.jena.query.Query query = com.hp.hpl.jena.query.QueryFactory.create(sSparql);
+			com.hp.hpl.jena.query.QueryExecution qexec = com.hp.hpl.jena.query.QueryExecutionFactory.sparqlService(endPoint, query);
+			try {
 
-		com.hp.hpl.jena.query.ResultSet results = qexec.execSelect();
-		
-		int count = com.hp.hpl.jena.query.ResultSetFormatter.consume(results);
-		Util.updateCount("EndPoint", count);
-		String ret = "EndPoint: " + count;
-		//String ret = com.hp.hpl.jena.query.ResultSetFormatter.asText(results);
-		
-		qexec.close();
+				com.hp.hpl.jena.query.ResultSet results = qexec.execSelect();
+
+				int count = com.hp.hpl.jena.query.ResultSetFormatter.consume(results);
+				Util.updateCount("EndPoint", count);
+				if(count > 0) {System.out.println("MapAppRes: " + Util.mAppRes);}
+				ret = "EndPoint: " + endPoint + ": " + Util.mAppRes.get("EndPoint");
+				// String ret = com.hp.hpl.jena.query.ResultSetFormatter.asText(results);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				break;
+			} finally {
+				qexec.close();
+			}
+			//System.out.print(offset);
+			offset += offsetSize;
+		} while (true);
 		return ret;
 	}
 
