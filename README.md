@@ -14,3 +14,6 @@ Where `<TYPE>` can be:
 
 Measuring Memmory, CPU and Disk consumption:
 - `python prodimem.py <PID> 60 > prodimem.log 2>&1 &`
+
+Stable version of all Source code, experiments and web version:
+(StableVersionV1)[https://doi.org/10.6084/m9.figshare.7370945]
