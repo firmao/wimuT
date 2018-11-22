@@ -1,0 +1,150 @@
+#-----id:662--------------
+SELECT  *
+WHERE
+  { ?uri      <http://tcga.deri.ie/schema/bcr_patient_barcode>  ?patient .
+    ?patient  <http://tcga.deri.ie/schema/gender>  ?gender .
+    ?patient          <http://dbpedia.org/ontology/country>  ?country .
+    ?country  <http://dbpedia.org/ontology/populationDensity>  ?popDensity .
+    ?nytimesCountry               <http://www.w3.org/2002/07/owl#sameAs>  ?country .
+    ?nytimesCountry          <http://data.nytimes.com/elements/latest_use>  ?latestused .
+    ?nytimesCountry          <http://data.nytimes.com/elements/number_of_variants>  ?totalVariants .
+    ?nytimesCountry          <http://data.nytimes.com/elements/associated_article_count>  ?articleCount .
+     ?nytimesCountry         <http://www.w3.org/2002/07/owl#sameAs>  ?geonames .
+    ?role     <http://data.semanticweb.org/ns/swc/ontology#isRoleAt>  <http://data.semanticweb.org/conference/eswc/2010> .
+    ?role          <http://data.semanticweb.org/ns/swc/ontology#heldBy>  ?author .
+    ?author   <http://xmlns.com/foaf/0.1/based_near>  ?geoname .
+    ?artist   <http://xmlns.com/foaf/0.1/based_near>  ?geoname .
+    ?artist          <http://xmlns.com/foaf/0.1/homepage>  ?homepage .
+    ?director  <http://dbpedia.org/ontology/nationality>  ?dbpediaCountry .
+    ?film     <http://dbpedia.org/ontology/director>  ?director .
+    ?x        <http://www.w3.org/2002/07/owl#sameAs>  ?film .
+    ?x           <http://data.linkedmdb.org/resource/movie/genre>  ?genre .
+    ?patient  <http://tcga.deri.ie/schema/bcr_drug_barcode>  ?drugbcr .
+    ?drugbcr  <http://tcga.deri.ie/schema/drug_name>  ?drugName .
+    ?drgBnkDrg  <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/inchiKey>  ?inchiKey .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/meltingPoint>  ?meltingPoint .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/chemicalStructure>  ?chemicalStructure .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/casRegistryNumber>  ?id .
+    ?keggDrug  a                    <http://bio2rdf.org/ns/kegg#Drug> .
+    ?keggDrug          <http://bio2rdf.org/ns/bio2rdf#xRef>  ?id .
+    ?keggDrug          <http://purl.org/dc/elements/1.1/title>  ?title .
+    ?chebiDrug  <http://purl.org/dc/elements/1.1/title>  ?drugName .
+    ?chebiDrug          <http://bio2rdf.org/ns/chebi#iupacName>  ?chebiIupacName
+    OPTIONAL
+      { ?drgBnkDrg  <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/inchiIdentifier>  ?drugbankInchi .
+        ?chebiDrug  <http://bio2rdf.org/ns/bio2rdf#inchi>  ?chebiInchi .
+        FILTER ( ?drugbankInchi = ?chebiInchi )
+      }
+  }
+LIMIT   1
+#-----id:660--------------
+SELECT  ?patient ?country ?articleCount ?chemicalStructure ?id
+WHERE
+  { <http://tcga.deri.ie/TCGA-43-2576>            <http://tcga.deri.ie/schema/bcr_patient_barcode>  ?patient .
+    ?patient  <http://tcga.deri.ie/schema/gender>  "FEMALE" .
+    ?patient          <http://dbpedia.org/ontology/country>  ?country .
+    ?country  <http://dbpedia.org/ontology/populationDensity>  ?popDen .
+    ?nytimesCountry               <http://www.w3.org/2002/07/owl#sameAs>  ?country .
+    ?nytimesCountry          <http://data.nytimes.com/elements/latest_use>  ?latestused .
+    ?nytimesCountry          <http://data.nytimes.com/elements/number_of_variants>  ?totalVariants .
+    ?nytimesCountry          <http://data.nytimes.com/elements/associated_article_count>  ?articleCount .
+    ?nytimesCountry          <http://www.w3.org/2002/07/owl#sameAs>  ?geonames .
+    <http://data.semanticweb.org/person/christian-bizer>               <http://xmlns.com/foaf/0.1/based_near>  ?geoname .
+    <http://data.semanticweb.org/person/christian-bizer>          <http://xmlns.com/foaf/0.1/homepage>  ?homepage .
+    ?director  <http://dbpedia.org/ontology/nationality>  ?dbpediaCountry .
+    <http://dbpedia.org/resource/The_Last_Valley>               <http://dbpedia.org/ontology/director>  ?director .
+    ?x        <http://www.w3.org/2002/07/owl#sameAs>  <http://dbpedia.org/resource/The_Last_Valley> .
+    ?x           <http://data.linkedmdb.org/resource/movie/genre>  <http://data.linkedmdb.org/resource/film_genre/4> .
+    ?patient  <http://tcga.deri.ie/schema/bcr_drug_barcode>  ?drugbcr .
+    ?drugbcr  <http://tcga.deri.ie/schema/drug_name>  "Cisplatin" .
+    ?drgBnkDrg  <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/inchiKey>  ?inchiKey .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/meltingPoint>  ?meltingPoint .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/chemicalStructure>  ?chemicalStructure .
+    ?drgBnkDrg          <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/casRegistryNumber>  ?id .
+    ?keggDrug  a                    <http://bio2rdf.org/ns/kegg#Drug> .
+    ?keggDrug          <http://bio2rdf.org/ns/bio2rdf#xRef>  ?id .
+    ?keggDrug          <http://purl.org/dc/elements/1.1/title>  "Follitropin alfa/beta" .
+  }
+#-------id:661-------------------------
+SELECT DISTINCT  *
+WHERE
+  { ?uri      <http://tcga.deri.ie/schema/bcr_patient_barcode>  ?patient .
+    ?patient  <http://tcga.deri.ie/schema/consent_or_death_status>  ?deathStatus .
+    ?patient         <http://dbpedia.org/ontology/country>  ?country .
+    ?country  <http://dbpedia.org/ontology/areaMetro>  ?areaMetro .
+    ?nytimesCountry               <http://www.w3.org/2002/07/owl#sameAs>  ?country .
+    ?nytimesCountry          <http://data.nytimes.com/elements/search_api_query>  ?apiQuery .
+    ?nytimesCountry          <http://www.w3.org/2002/07/owl#sameAs>  ?location .
+    ?artist   <http://xmlns.com/foaf/0.1/based_near>  ?location .
+    ?artist          <http://xmlns.com/foaf/0.1/firstName>  ?firstName .
+    ?director  <http://dbpedia.org/ontology/spouse>  ?spouse .
+    ?film     <http://dbpedia.org/ontology/director>  ?director .
+    ?x        <http://www.w3.org/2002/07/owl#sameAs>  ?film .
+    ?x           <http://data.linkedmdb.org/resource/movie/runtime>  ?runTime .
+    ?patient  <http://tcga.deri.ie/schema/bcr_drug_barcode>  ?drugbcr .
+    ?drugbcr  <http://tcga.deri.ie/schema/drug_name>  ?drugName .
+    ?drgBnkDrg  <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/casRegistryNumber>  ?id .
+    ?drgBnkDrg           <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/brandName>  ?brandName .
+    ?keggDrug  <http://bio2rdf.org/ns/bio2rdf#xRef>  ?id .
+    ?keggDrug          <http://bio2rdf.org/ns/bio2rdf#mass>  ?mass .
+    ?keggDrug          <http://bio2rdf.org/ns/bio2rdf#synonym>  ?synonym .
+    ?chebiDrug  <http://purl.org/dc/elements/1.1/title>  ?drugName .
+  }
+LIMIT   775
+#-------id:659-------------------------
+SELECT DISTINCT  *
+WHERE
+  { ?uri      <http://tcga.deri.ie/schema/bcr_patient_barcode>  ?patient .
+    ?patient  ?p                    ?country .
+    ?country  <http://dbpedia.org/ontology/populationDensity>  32 .
+    ?nytimesCountry               <http://www.w3.org/2002/07/owl#sameAs>  ?country .
+    ?nytimesCountry          <http://data.nytimes.com/elements/latest_use>  ?dateused .
+    ?nytimesCountry          <http://www.w3.org/2002/07/owl#sameAs>  ?geonames .
+    ?artist   <http://xmlns.com/foaf/0.1/based_near>  ?geoname .
+    ?artist          <http://xmlns.com/foaf/0.1/homepage>  ?homepage .
+    ?director  <http://dbpedia.org/ontology/nationality>  ?dbpediaCountry .
+    ?film     <http://dbpedia.org/ontology/director>  <http://dbpedia.org/resource/Michael_Haussman> .
+    ?x        <http://www.w3.org/2002/07/owl#sameAs>  ?film .
+    ?x          <http://data.linkedmdb.org/resource/movie/genre>  ?genre .
+    ?patient  <http://tcga.deri.ie/schema/bcr_drug_barcode>  ?drugbcr .
+    ?drugbcr  <http://tcga.deri.ie/schema/drug_name>  ?drugName .
+    <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00441>            <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/genericName>  ?drugName .
+    <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00441>           <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/indication>  ?indication .
+    <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00441>           <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/chemicalFormula>  ?formula .
+    <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00441>           <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/keggCompoundId>  ?compound .
+  }
+LIMIT   5
+#-------id:476-------------------------
+PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+PREFIX  :     <http://dbpedia.org/resource/>
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  dbpedia2: <http://dbpedia.org/property/>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  dbo:  <http://dbpedia.org/ontology/>
+PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX  dbpedia: <http://dbpedia.org/>
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT  ?player ?name ?birth ?death
+WHERE
+  { ?s foaf:page ?player .
+    ?s foaf:name ?name .
+    ?s dbo:birthDate ?birth .
+    ?s dbo:deathDate ?death .
+    ?s rdf:type dbo:SoccerPlayer .
+    ?s dbpedia2:position ?position .
+    ?s dbpedia2:clubs ?club .
+    ?club dbo:capacity ?cap .
+    ?s dbo:birthPlace ?place .
+    ?place ?population ?pop
+    OPTIONAL
+      { ?s dbo:number ?tricot }
+    FILTER ( ?population IN (dbpedia2:populationEstimate, dbpedia2:populationCensus, dbpedia2:statPop) )
+    FILTER ( xsd:int(?pop) > 10000000 )
+    FILTER ( xsd:int(?cap) < 40000 )
+    FILTER ( ( ( ?position = "Striker"@en ) || ( ?position = <http://dbpedia.org/resource/Goalkeeper_%28association_football%29> ) ) || ( ?position = <http://dbpedia.org/resource/Goalkeeper_%28football%29> ) )
+  }
+LIMIT   1000
+

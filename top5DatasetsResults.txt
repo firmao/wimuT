@@ -1,0 +1,212 @@
+#-----id:644-datasets:12-------------
+prefix swc: <http://data.semanticweb.org/ns/swc/ontology#>
+prefix swrc: <http://swrc.ontoware.org/ontology#>
+prefix eswc: <http://data.semanticweb.org/conference/eswc/>
+prefix iswc:  <http://data.semanticweb.org/conference/iswc/2009/>
+prefix foaf: <http://xmlns.com/foaf/0.1/>
+prefix purl: <http://purl.org/ontology/bibo/>
+PREFIX dbpedia: <http://dbpedia.org/ontology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT * WHERE
+{
+?paper swc:isPartOf iswc:proceedings .
+iswc:proceedings swrc:address ?proceedingAddress.
+?paper swrc:author ?author .
+?author swrc:affiliation ?affiliation ;
+rdfs:label ?fullnames ;
+foaf:based_near ?place.
+OPTIONAL
+{
+?place dbpedia:capital ?capital;
+dbpedia:populationDensity  ?populationDensity;
+dbpedia:governmentType   ?governmentType;
+dbpedia:language  ?language ;
+dbpedia:leaderTitle ?leaderTitle.
+}
+}
+#-----id:594-datasets:11-------------
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  dbprop: <http://dbpedia.org/property/>
+PREFIX  dbpedia: <http://dbpedia.org/ontology/>
+
+SELECT DISTINCT  ?film ?title ?originalTitle ?directorName ?nationality ?nationality2 ?releaseDate ?summary ?studioName ?duration ?url ?website
+WHERE
+  { ?film <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> dbpedia:Film .
+    ?film foaf:name ?title
+    OPTIONAL
+      { ?film rdfs:label ?originalTitle }
+    OPTIONAL
+      { ?film dbpedia:director ?director .
+        ?director rdfs:label ?directorName
+        FILTER ( lang(?directorName) = "en" )
+      }
+    OPTIONAL
+      { ?film dbprop:country ?country .
+        ?country rdfs:label ?nationality
+        FILTER ( lang(?nationality) = "en" )
+      }
+    OPTIONAL
+      { ?film dbprop:country ?nationality2
+        FILTER ( lang(?nationality2) = "en" )
+      }
+    OPTIONAL
+      { ?film dbpedia:releaseDate ?releaseDate }
+    OPTIONAL
+      { ?film dbpedia:abstract ?summary
+        FILTER ( lang(?summary) = "fr" )
+      }
+    OPTIONAL
+      { ?film dbprop:distributor ?studio .
+        ?studio rdfs:label ?studioName
+        FILTER ( lang(?studioName) = "en" )
+      }
+    OPTIONAL
+      { ?film <http://dbpedia.org/ontology/Work/runtime> ?duration }
+    OPTIONAL
+      { ?film foaf:homepage ?url }
+    OPTIONAL
+      { ?film foaf:page ?website }
+    FILTER regex(?title, "iron man$", "i")
+    FILTER ( lang(?originalTitle) = "en" )
+  }
+#-------id:441-datasets:11------------------------
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  dbprop: <http://dbpedia.org/property/>
+PREFIX  dbpedia: <http://dbpedia.org/ontology/>
+
+SELECT DISTINCT  ?film ?title ?originalTitle ?directorName ?nationality ?nationality2 ?releaseDate ?summary ?studioName ?duration ?url ?website
+WHERE
+  { ?film <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> dbpedia:Film .
+    ?film foaf:name ?title
+    OPTIONAL
+      { ?film rdfs:label ?originalTitle }
+    OPTIONAL
+      { ?film dbpedia:director ?director .
+        ?director rdfs:label ?directorName
+        FILTER ( lang(?directorName) = "en" )
+      }
+    OPTIONAL
+      { ?film dbprop:country ?country .
+        ?country rdfs:label ?nationality
+        FILTER ( lang(?nationality) = "en" )
+      }
+    OPTIONAL
+      { ?film dbprop:country ?nationality2
+        FILTER ( lang(?nationality2) = "en" )
+      }
+    OPTIONAL
+      { ?film dbpedia:releaseDate ?releaseDate }
+    OPTIONAL
+      { ?film dbpedia:abstract ?summary
+        FILTER ( lang(?summary) = "fr" )
+      }
+    OPTIONAL
+      { ?film dbprop:distributor ?studio .
+        ?studio rdfs:label ?studioName
+        FILTER ( lang(?studioName) = "en" )
+      }
+    OPTIONAL
+      { ?film <http://dbpedia.org/ontology/Work/runtime> ?duration }
+    OPTIONAL
+      { ?film foaf:homepage ?url }
+    OPTIONAL
+      { ?film foaf:page ?website }
+    FILTER regex(?title, "iron man$", "i")
+    FILTER ( lang(?originalTitle) = "en" )
+  }
+#-------id:399-datasets:11------------------------
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  dbprop: <http://dbpedia.org/property/>
+PREFIX  dbpedia: <http://dbpedia.org/ontology/>
+
+SELECT DISTINCT  ?film ?title ?originalTitle ?directorName ?nationality ?nationality2 ?releaseDate ?summary ?studioName ?duration ?url ?website
+WHERE
+  { ?film <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> dbpedia:Film .
+    ?film foaf:name ?title
+    OPTIONAL
+      { ?film rdfs:label ?originalTitle }
+    OPTIONAL
+      { ?film dbpedia:director ?director .
+        ?director rdfs:label ?directorName
+        FILTER ( lang(?directorName) = "en" )
+      }
+    OPTIONAL
+      { ?film dbprop:country ?country .
+        ?country rdfs:label ?nationality
+        FILTER ( lang(?nationality) = "en" )
+      }
+    OPTIONAL
+      { ?film dbprop:country ?nationality2
+        FILTER ( lang(?nationality2) = "en" )
+      }
+    OPTIONAL
+      { ?film dbpedia:releaseDate ?releaseDate }
+    OPTIONAL
+      { ?film dbpedia:abstract ?summary
+        FILTER ( lang(?summary) = "fr" )
+      }
+    OPTIONAL
+      { ?film dbprop:distributor ?studio .
+        ?studio rdfs:label ?studioName
+        FILTER ( lang(?studioName) = "en" )
+      }
+    OPTIONAL
+      { ?film <http://dbpedia.org/ontology/Work/runtime> ?duration }
+    OPTIONAL
+      { ?film foaf:homepage ?url }
+    OPTIONAL
+      { ?film foaf:page ?website }
+    FILTER regex(?title, "la promesse$", "i")
+    FILTER ( lang(?originalTitle) = "en" )
+  }
+#-------id:473-datasets:11------------------------
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  dbprop: <http://dbpedia.org/property/>
+PREFIX  dbpedia: <http://dbpedia.org/ontology/>
+
+SELECT DISTINCT  ?movie ?title ?originalTitle ?nationality ?nationality2 ?releaseDate ?summary ?studioName ?duration ?url ?website ?directorName
+WHERE
+  { ?movie <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> dbpedia:Film .
+    ?movie foaf:name ?title
+    OPTIONAL
+      { ?movie rdfs:label ?originalTitle }
+    OPTIONAL
+      { ?movie dbprop:country ?country .
+        ?country rdfs:label ?nationality
+        FILTER ( lang(?nationality) = "en" )
+      }
+    OPTIONAL
+      { ?movie dbprop:country ?nationality2
+        FILTER ( lang(?nationality2) = "en" )
+      }
+    OPTIONAL
+      { ?movie dbpedia:releaseDate ?releaseDate }
+    OPTIONAL
+      { ?movie dbpedia:abstract ?summary
+        FILTER ( lang(?summary) = "fr" )
+      }
+    OPTIONAL
+      { ?movie dbprop:distributor ?studio .
+        ?studio rdfs:label ?studioName
+        FILTER ( lang(?studioName) = "en" )
+      }
+    OPTIONAL
+      { ?movie <http://dbpedia.org/ontology/Work/runtime> ?duration }
+    OPTIONAL
+      { ?movie foaf:homepage ?url }
+    OPTIONAL
+      { ?movie foaf:page ?website }
+    OPTIONAL
+      { ?movie dbpedia:director ?director }
+    OPTIONAL
+      { ?director rdfs:label ?directorName
+        FILTER ( lang(?directorName) = "en" )
+      }
+    FILTER regex(?title, "I, Robot", "i")
+    FILTER regex(?directorName, "Alex Proyas", "i")
+    FILTER ( lang(?originalTitle) = "en" )
+  }
