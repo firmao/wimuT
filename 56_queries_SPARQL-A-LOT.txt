@@ -1,4 +1,4 @@
-IDs of the queries where only SPARQL-a-LOT where able to return execute the queries and returning results, please search the query on the file idQuery.txt and the results on the directory "results":
+IDs of the queries where only SPARQL-a-LOT where able to return execute the queries and returning results, please search the query on the file (idQuery662.txt)[https://github.com/firmao/wimuT/blob/master/idQuery662.txt] and the results on the directory "results":
 7
 34
 35
