@@ -1,0 +1,5 @@
+SELECT ?uri ?id WHERE {?uri 
+    <http://dbpedia.org/ontology/wikiPageID> 
+    ?id. FILTER (?uri = 
+    <http://dbpedia.org/resource/Weight_gain>
+    ) }
