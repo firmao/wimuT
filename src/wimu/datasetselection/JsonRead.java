@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -32,6 +34,7 @@ public class JsonRead {
 
 			double dCount = 0.0;
 			int lines = 0;
+			Map<String, String> mEndpointNumTriples = new HashMap<String, String>();
 			for (Entry<String, Object> entry : map.entrySet()) {
 				lines++;
 				Map<String, Object> m1 = (Map<String, Object>) map.get(entry.getKey());
@@ -42,9 +45,15 @@ public class JsonRead {
 				if(numTriples.isEmpty()) continue;
 				dCount += Double.valueOf(numTriples);
 				
+				List<Map<String, Object>> lst = (List<Map<String, Object>>) m1.get("sparql");
+				for (Map<String, Object> m2 : lst) {
+					//System.out.println(m2.values());
+					mEndpointNumTriples.put(m2.get("access_url").toString(), numTriples);
+					System.out.println(m2.get("access_url").toString() + "\t" + numTriples);
+				}
 			}
-			System.out.println("Total triples: " + dCount);
-			System.out.println("Lines: " + lines);
+			//System.out.println("Total triples: " + dCount);
+			//System.out.println("Lines: " + lines);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
