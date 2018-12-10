@@ -18,4 +18,4 @@ Measuring Memmory, CPU and Disk consumption:
 Stable version of all Source code, experiments and web version:
 (StableVersionV1)[https://doi.org/10.6084/m9.figshare.7370945]
 
-I case you want to try some query we have a prototype (here)[http://139.18.8.58:8081/SQUIN-0.1.4/]
+A prototype is available here (here)[http://139.18.8.58:8081/wimuq/]
