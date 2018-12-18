@@ -19,3 +19,6 @@ Stable version of all Source code, experiments and web version:
 (StableVersionV1)[https://doi.org/10.6084/m9.figshare.7370945]
 
 A prototype is available here (here)[https://w3id.org/wimuq/]
+
+About the code:
+The main class is 'src/org/wimu/datasetselection/parallelv1/MainParallelv1.java'
