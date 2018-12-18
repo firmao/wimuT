@@ -18,4 +18,4 @@ Measuring Memmory, CPU and Disk consumption:
 Stable version of all Source code, experiments and web version:
 (StableVersionV1)[https://doi.org/10.6084/m9.figshare.7370945]
 
-A prototype is available here (here)[http://139.18.8.58:8081/wimuq/]
+A prototype is available here (here)[https://w3id.org/wimuq/]
