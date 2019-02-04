@@ -1,10 +1,11 @@
-http://dbpedia.org/sparql	http://dbpedia.org/property/windRatedSpeed	5
-http://dbpedia.org/sparql	http://dbpedia.org/property/wind	33
-http://dbpedia.org/sparql	http://dbpedia.org/property/windance	2
-http://dbpedia.org/sparql	http://dbpedia.org/property/winter	23
-https://query.wikidata.org	http://wikidata.property1	52
-https://query.wikidata.org	http://wikidata.property2	25
-https://query.wikidata.org	http://wikidata.property3	53
-http://download.lodlaundromat.org/85d5a476b56fde200e770cefa0e5033c?type=hdt	http://property2	87
-http://download.lodlaundromat.org/85d5a476b56fde200e770cefa0e5033c?type=hdt	http://property6	7
-http://download.lodlaundromat.org/85d5a476b56fde200e770cefa0e5033c?type=hdt	http://property7	46
+http://dbpedia.org/sparql
+http://property1	http://property3	http://propertyN
+2	14	55
+
+https://query.wikidata.org
+http://property7	http://property3	http://propertyG
+2	34	5
+
+http://download.lodlaundromat.org/85d5a476b56fde200e770cefa0e5033c?type=hdt
+http://propertyB	http://property4	http://property8
+6	16	53
