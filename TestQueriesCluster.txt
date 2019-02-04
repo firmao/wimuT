@@ -1,0 +1,6 @@
+#Properties and number of times of use.
+Select ?p count(?p) as ?qtd where {
+?s ?p ?o
+}
+group by ?p
+
