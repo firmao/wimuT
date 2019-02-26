@@ -1,12 +1,16 @@
 package org.wimu.datasetselection.parallelv1;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -20,15 +24,25 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.Prologue;
+import org.rdfhdt.hdt.hdt.HDT;
+import org.rdfhdt.hdt.hdt.HDTManager;
+import org.rdfhdt.hdtjena.HDTGraph;
+import org.tukaani.xz.XZInputStream;
 
 import com.google.gson.Gson;
 import com.hp.hpl.jena.query.QuerySolution;
@@ -485,7 +499,7 @@ public class Util {
 	public static Set<String> getDsWIMUs(String uri) throws InterruptedException, IOException {
 		Set<String> sRet = new HashSet<String>();
 
-		URL urlSearch = new URL("http://139.18.8.58:8080/LinkLion2_WServ/Find?uri=" + uri);
+		URL urlSearch = new URL("http://wimu.aksw.org/Find?uri=" + uri);
 		InputStreamReader reader = null;
 		try {
 			reader = new InputStreamReader(urlSearch.openStream());
@@ -634,6 +648,47 @@ public class Util {
 		return ret;
 	}
 
+	public static Map<String, Integer> execQueryEndPointMap(String cSparql, String endPoint) {
+		System.out.println("Query endPoint: " + endPoint);
+		final Map<String, Integer> ret = new HashMap<String, Integer>();
+		final long offsetSize = 9999;
+		long offset = 0;
+		do {
+			String sSparql = cSparql;
+			int indOffset = cSparql.toLowerCase().indexOf("offset");
+			int indLimit = cSparql.toLowerCase().indexOf("limit");
+			if((indLimit < 0) && (indOffset < 0)) {
+				sSparql = cSparql += " offset " + offset + " limit " + offsetSize;
+			}
+			com.hp.hpl.jena.query.Query query = com.hp.hpl.jena.query.QueryFactory.create(sSparql);
+			com.hp.hpl.jena.query.QueryExecution qexec = com.hp.hpl.jena.query.QueryExecutionFactory.sparqlService(endPoint, query);
+			try {
+
+				com.hp.hpl.jena.query.ResultSet results = qexec.execSelect();
+				List<QuerySolution> lst = com.hp.hpl.jena.query.ResultSetFormatter.toList(results);
+				for (QuerySolution qSolution : lst) {
+					String prop = qSolution.get("p").toString();
+					Integer qtd = qSolution.get("qtd").asLiteral().getInt();
+					
+					ret.put(prop, qtd);
+				}
+				
+				if((indLimit > 0) || (indOffset > 0)) {
+					break;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				break;
+			} finally {
+				qexec.close();
+			}
+			//System.out.print(offset);
+			offset += offsetSize;
+		} while (true);
+		
+		return ret;
+	}
+	
 	public static List<WimuTQuery> executeQueriesLODaLOT(List<String> setQueries) {
 		final List<WimuTQuery> ret = new ArrayList<WimuTQuery>();
 		System.out.println("### Executing only using SPARQL LOD-A-LOT API ###");
@@ -837,5 +892,254 @@ public class Util {
 		}
 		
 		return ret;
+	}
+
+	public static boolean isEndPoint(String source) {
+		return source.toLowerCase().contains("sparql");
+	}
+
+	public static Map<String, Integer> execQueryRDFRes(String cSparql, String dataset) {
+		final Map<String, Integer> ret = new HashMap<String, Integer>();
+		File file = null;
+		try {
+			if (dataset.startsWith("http")) {
+				URL url = new URL(dataset);
+				file = new File(Util.getURLFileName(url));
+				if (!file.exists()) {
+					FileUtils.copyURLToFile(url, file);
+				}
+			} else {
+				file = new File(dataset);
+			}
+
+			file = unconpress(file);
+			// long limSize = 10000000; // 10 MB
+			// if (file.length() > limSize) {
+			// System.err.println("File: " + file.getAbsolutePath() + " is bigger than " +
+			// limSize + " bytes");
+			// ret.addAll(Util.execQueryEndPoint(cSparql, "http://dbpedia.org/sparql",
+			// true));
+			// return ret;
+			// }
+			if (file.getName().endsWith("hdt")) {
+				return execQueryHDTRes(cSparql, file.getAbsolutePath());
+			}
+
+			long start = System.currentTimeMillis();
+			org.apache.jena.rdf.model.Model model = org.apache.jena.rdf.model.ModelFactory.createDefaultModel();
+			org.apache.jena.sparql.engine.QueryExecutionBase qe = null;
+			org.apache.jena.query.ResultSet resultSet = null;
+			/* First check the IRI file extension */
+			if (file.getName().toLowerCase().endsWith(".ntriples") || file.getName().toLowerCase().endsWith(".nt")) {
+				System.out.println("# Reading a N-Triples file...");
+				model.read(file.getAbsolutePath(), "N-TRIPLE");
+			} else if (file.getName().toLowerCase().endsWith(".n3")) {
+				System.out.println("# Reading a Notation3 (N3) file...");
+				model.read(file.getAbsolutePath());
+			} else if (file.getName().toLowerCase().endsWith(".json") || file.getName().toLowerCase().endsWith(".jsod")
+					|| file.getName().toLowerCase().endsWith(".jsonld")) {
+				System.out.println("# Trying to read a 'json-ld' file...");
+				model.read(file.getAbsolutePath(), "JSON-LD");
+			} else {
+				String contentType = getContentType(dataset); // get the IRI
+																// content type
+				System.out.println("# IRI Content Type: " + contentType);
+				if (contentType.contains("application/ld+json") || contentType.contains("application/json")
+						|| contentType.contains("application/json+ld")) {
+					System.out.println("# Trying to read a 'json-ld' file...");
+					model.read(file.getAbsolutePath(), "JSON-LD");
+				} else if (contentType.contains("application/n-triples")) {
+					System.out.println("# Reading a N-Triples file...");
+					model.read(file.getAbsolutePath(), "N-TRIPLE");
+				} else if (contentType.contains("text/n3")) {
+					System.out.println("# Reading a Notation3 (N3) file...");
+					model.read(file.getAbsolutePath());
+				} else {
+					model.read(file.getAbsolutePath());
+				}
+			}
+
+			qe = (org.apache.jena.sparql.engine.QueryExecutionBase) org.apache.jena.query.QueryExecutionFactory
+					.create(cSparql, model);
+			resultSet = qe.execSelect();
+			if (resultSet != null) {
+				List<org.apache.jena.query.QuerySolution> lQuerySolution = ResultSetFormatter.toList(resultSet);
+				for (org.apache.jena.query.QuerySolution qSolution : lQuerySolution) {
+					String prop = qSolution.get("p").toString();
+					Integer qtd = qSolution.get("qtd").asLiteral().getInt();
+					
+					ret.put(prop, qtd);
+				}
+			}
+			long total = System.currentTimeMillis() - start;
+			System.out.println("Time to query dataset: " + total + "ms");
+			// file.delete();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		
+		return ret;
+	}
+	
+	private static Map<String, Integer> execQueryHDTRes(String cSparql, String dataset) throws IOException {
+		final Map<String, Integer>  ret = new HashMap<String, Integer> ();
+		File file = null;
+		HDT hdt = null;
+		try {
+			System.out.println("Dataset: " + dataset);
+			long start = System.currentTimeMillis();
+			if (dataset.startsWith("http")) {
+				URL url = new URL(dataset);
+				file = new File(Util.getURLFileName(url));
+				if (!file.exists()) {
+					FileUtils.copyURLToFile(url, file);
+				}
+			} else {
+				file = new File(dataset);
+			}
+			file = unconpress(file);
+//			long limSize = 10000000; // 10 MB
+//			if (file.length() > limSize) {
+//				System.err.println("File: " + file.getAbsolutePath() + " is bigger than " + limSize + " bytes");
+//				ret.addAll(Util.execQueryEndPoint(cSparql, "http://dbpedia.org/sparql", true));
+//				return ret;
+//			}
+			long total = System.currentTimeMillis() - start;
+			System.out.println("Time to download dataset: " + total + "ms");
+			start = System.currentTimeMillis();
+			hdt = HDTManager.mapHDT(file.getAbsolutePath(), null);
+			HDTGraph graph = new HDTGraph(hdt);
+			Model model = new ModelCom(graph);
+			Query query = QueryFactory.create(cSparql);
+			QueryExecution qe = QueryExecutionFactory.create(query, model);
+			ResultSet results = qe.execSelect();
+
+			List<org.apache.jena.query.QuerySolution> lQuerySolution = ResultSetFormatter.toList(results);
+			int count = 0;
+			for (org.apache.jena.query.QuerySolution qSolution : lQuerySolution) {
+				String prop = qSolution.get("p").toString();
+				Integer qtd = qSolution.get("qtd").asLiteral().getInt();
+				
+				ret.put(prop, qtd);
+			}
+
+			total = System.currentTimeMillis() - start;
+			System.out.println("Time to query dataset: " + total + "ms");
+			qe.close();
+		} catch (Exception e) {
+			System.out.println("FAIL: " + dataset + " Error: " + e.getMessage());
+		} finally {
+			// file.delete();
+			if (hdt != null) {
+				hdt.close();
+			}
+		}
+		
+		return ret;
+	}
+
+	public static File unconpress(File file) {
+		File ret = file;
+		try {
+			File fUnzip = null;
+			if (file.getName().endsWith(".bz2"))
+				fUnzip = new File(file.getName().replaceAll(".bz2", ""));
+			else if (file.getName().endsWith(".xz"))
+				fUnzip = new File(file.getName().replaceAll(".xz", ""));
+			else if (file.getName().endsWith(".zip"))
+				fUnzip = new File(file.getName().replaceAll(".zip", ""));
+			else if (file.getName().endsWith(".tar.gz"))
+				fUnzip = new File(file.getName().replaceAll(".tar.gz", ""));
+			else if (file.getName().endsWith(".gz"))
+				fUnzip = new File(file.getName().replaceAll(".gz", ""));
+			else
+				return file;
+
+			if (fUnzip.exists()) {
+				return fUnzip;
+			}
+			BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
+			FileOutputStream out = new FileOutputStream(fUnzip);
+
+			if (file.getName().endsWith(".bz2")) {
+				BZip2CompressorInputStream bz2In = new BZip2CompressorInputStream(in);
+				synchronized (bz2In) {
+					final byte[] buffer = new byte[8192];
+					int n = 0;
+					while (-1 != (n = bz2In.read(buffer))) {
+						out.write(buffer, 0, n);
+					}
+					out.close();
+					bz2In.close();
+				}
+			} else if (file.getName().endsWith(".xz")) {
+				XZInputStream xzIn = new XZInputStream(in);
+				synchronized (xzIn) {
+					final byte[] buffer = new byte[8192];
+					int n = 0;
+					while (-1 != (n = xzIn.read(buffer))) {
+						out.write(buffer, 0, n);
+					}
+					out.close();
+					xzIn.close();
+				}
+			} else if (file.getName().endsWith(".zip")) {
+				ZipArchiveInputStream zipIn = new ZipArchiveInputStream(in);
+				synchronized (zipIn) {
+					final byte[] buffer = new byte[8192];
+					int n = 0;
+					while (-1 != (n = zipIn.read(buffer))) {
+						out.write(buffer, 0, n);
+					}
+					out.close();
+					zipIn.close();
+				}
+			} else if (file.getName().endsWith(".tar.gz") || file.getName().endsWith(".gz")) {
+				GzipCompressorInputStream gzIn = new GzipCompressorInputStream(in);
+				synchronized (gzIn) {
+					final byte[] buffer = new byte[8192];
+					int n = 0;
+					while (-1 != (n = gzIn.read(buffer))) {
+						out.write(buffer, 0, n);
+					}
+					out.close();
+					gzIn.close();
+				}
+			}
+
+			// file.delete();
+
+			if (fUnzip != null)
+				ret = fUnzip;
+		} catch (Exception ex) {
+			ret = file;
+		}
+		return ret;
+	}
+	
+	/**
+	 * Read the IRI content type by opening an HTTP connection. We set the value
+	 * 'application/rdf+xml' to the ACCEPT request property for handling
+	 * dereferenceable IRIs.
+	 */
+	public static String getContentType(String iri) {
+		String contentType = "";
+		try {
+			URL url = new URL(iri);
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestMethod("HEAD");
+			connection.setRequestProperty("ACCEPT", "application/rdf+xml");
+			connection.connect();
+			contentType = connection.getContentType();
+			if (contentType == null) {
+				contentType = "";
+			}
+		} catch (MalformedURLException ex) {
+			ex.printStackTrace();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		return contentType;
 	}
 }

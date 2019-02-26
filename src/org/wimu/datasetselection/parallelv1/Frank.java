@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 public class Frank {
 
 	public static void main(String[] args) throws IOException {
-		//second();
+		second();
 		 String[] commands = {"./frank","statements"
 		 ,"-p","http://dbpedia.org/ontology/nationality"
 		 ,"-o","http://dbpedia.org/resource/United_States"};
@@ -26,11 +26,12 @@ public class Frank {
 
 	public static void second() {
 		try { 		
-			String[] commands = {"./frank","statements"
-					 ,"-p","http://dbpedia.org/ontology/nationality"
-					 ,"-o","http://dbpedia.org/resource/United_States"};
+//			String[] commands = {"./frank","statements"
+//					 ,"-p","http://dbpedia.org/ontology/nationality"
+//					 ,"-o","http://dbpedia.org/resource/United_States"};
 			//Process	p = Runtime.getRuntime().exec("/media/andre/DATA/python/anaconda/bin/curl http://wimu.aksw.org"); 			
-			Process	p = Runtime.getRuntime().exec(commands);
+			//Process	p = Runtime.getRuntime().exec(commands);
+			Process p = Runtime.getRuntime().exec("/media/andre/DATA/linux/linklion2/Frank-master/entities.sh resources.txt");
 			p.waitFor(); 
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line = "";
