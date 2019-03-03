@@ -1016,7 +1016,6 @@ public class Util {
 			ResultSet results = qe.execSelect();
 
 			List<org.apache.jena.query.QuerySolution> lQuerySolution = ResultSetFormatter.toList(results);
-			int count = 0;
 			for (org.apache.jena.query.QuerySolution qSolution : lQuerySolution) {
 				String prop = qSolution.get("p").toString();
 				Integer qtd = qSolution.get("qtd").asLiteral().getInt();

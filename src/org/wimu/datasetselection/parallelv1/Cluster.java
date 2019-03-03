@@ -1,23 +1,27 @@
 package org.wimu.datasetselection.parallelv1;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.util.CharArrayMap.EntrySet;
 
 public class Cluster {
 	public static final Map<String, String> mDatasetCode = new HashMap<String, String>();
 	public static final Map<String, String> mPropertyCode = new HashMap<String, String>();
 	
-	public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-		long start = System.currentTimeMillis();
+	public static void main(String[] args) throws IOException {
+		long start = System.currentTimeMillis();	
 		Set<String> datasets = new HashSet<String>();
 		//datasets.add("http://dbpedia.org/sparql");
 		//datasets.add("http://lod2.openlinksw.com/sparql");
@@ -32,9 +36,11 @@ public class Cluster {
 		System.out.println("FINISHED in " + TimeUnit.MILLISECONDS.toMinutes(total) + " minutes");
 	}
 
-	private static void generateFileKMeans(Set<String> datasets, boolean bSparse) throws FileNotFoundException, UnsupportedEncodingException {
+	private static void generateFileKMeans(Set<String> datasets, boolean bSparse) throws IOException {
 		String fileName = "ClusterKMeans.csv";
 		final Map<String, Integer> mPropOccur = new HashMap<String, Integer>();
+		String dataset_code_file = "Dataset_code.tsv";
+		String prop_code_file = "Property_code.tsv";
 		if(bSparse) {
 			fileName = "sparse_" + fileName;
 		} else {
@@ -45,6 +51,12 @@ public class Cluster {
 				"?s ?p ?o .\n" + 
 				"}\n" + 
 				"group by ?p";
+//		final String cSparql = "Select ?p (count(?p) as ?qtd) where {\n" + 
+//				"?s ?p ?o .\n" + 
+//				"filter(?p=<http://www.aktors.org/ontology/extension#has-authority>)}\n" + 
+//				"group by ?p";
+		loadMaps(dataset_code_file);
+		loadMaps(prop_code_file);
 		if(bSparse) {
 			for (String ds : datasets) {
 				mPropOccur.putAll(execSparql(cSparql, ds));
@@ -64,10 +76,12 @@ public class Cluster {
 			writer.println(sbHeader.toString());
 			int numProps = mPropOccur.keySet().size();
 			mPropOccur.clear();
+			//mPropertyCode.clear();
 			for (String ds : datasets) {
 				String line = getCodeDataset(ds);
 				mPropOccur.putAll(execSparql(cSparql, ds));
 				for (String prop : mPropOccur.keySet()) {
+					//getCodeProp(prop);	
 					line += "," + mPropOccur.get(prop);
 				}
 				int numPLeft = (numProps - mPropOccur.keySet().size());
@@ -78,12 +92,41 @@ public class Cluster {
 			}
 		}
 		writer.close();
-		generateFile(mDatasetCode, "Dataset_code.tsv");
-		generateFile(mPropertyCode, "Property_code.tsv");
+		generateFile(mDatasetCode, dataset_code_file);
+		generateFile(mPropertyCode, prop_code_file);
 		//plotGraphKNN(fileName);
 	}
 
+	private static void loadMaps(String mFile) throws IOException {
+		System.out.println("Loading file: " + mFile);
+		File f = new File(mFile);
+		if (!f.exists()) {
+			System.err.println(mFile + " not found.");
+			return;
+		}
+		List<String> lstLines = FileUtils.readLines(f, "UTF-8");
+		for (String line : lstLines) {
+			String s[] = line.split("\t");
+			if (s.length < 2)
+				continue;
+			String prop = s[0].trim();
+			String code = s[1].trim();
+			if(mFile.toLowerCase().startsWith("dataset")) {
+				mDatasetCode.put(prop, code);
+			} else {
+				mPropertyCode.put(prop, code);
+			}
+		}
+		
+	}
+
 	private static void generateFile(Map<String, String> mapCode, String fileName) throws FileNotFoundException, UnsupportedEncodingException {
+		File f = new File(fileName);
+		if (f.exists()) {
+			System.err.println(fileName + " Already existis.");
+			return;
+		}
+		
 		PrintWriter writer = new PrintWriter(fileName, "UTF-8");
 		for (Entry<String, String> entry : mapCode.entrySet()) {
 			writer.println(entry.getKey() + "\t" + entry.getValue());
