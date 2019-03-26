@@ -1028,6 +1028,7 @@ public class Util {
 			qe.close();
 		} catch (Exception e) {
 			System.out.println("FAIL: " + dataset + " Error: " + e.getMessage());
+			ClusterKmeans.dsError.add(dataset);
 		} finally {
 			// file.delete();
 			if (hdt != null) {
