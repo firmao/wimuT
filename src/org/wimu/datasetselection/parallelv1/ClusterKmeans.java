@@ -472,4 +472,24 @@ public class ClusterKmeans {
 		return mRet;
 	}
 
+	public static Set<String> identifyDuplicates(Set<String> datasets) throws IOException, NotFoundException {
+		long start = System.currentTimeMillis();
+		// generateFileKMeans(datasets);
+		Set<String> clusterCandidates = generateFileArff(datasets);
+		long total = System.currentTimeMillis() - start;
+		// System.out.println("FINISHED in " + TimeUnit.MILLISECONDS.toMinutes(total) +
+		// " minutes");
+
+		System.out.println("datasets: " + datasets.size());
+		System.out.println("clusterCandidates: " + clusterCandidates.size());
+		System.out.println("Datasets with error: " + dsError.size());
+		System.out.println("FINISHED in " + TimeUnit.MILLISECONDS.toSeconds(total) + " seconds");
+		System.out.println("Datasets\tChunks\tDuplicatesToSkip\tDuplicatesToAdd\tErrors\tTime(s)");
+		System.out.println(datasets.size() + "\t" + clusterCandidates.size() + "\t" + setDsToSkip.size() + "\t"
+				+ setDuplicates.size() + "\t" + dsError.size() + "\t" + TimeUnit.MILLISECONDS.toSeconds(total));
+		// generateFile(setDsToSkip, "duplicates.txt");
+		deleteFiles();
+		return setDsToSkip;
+	}
+
 }

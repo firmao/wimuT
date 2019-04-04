@@ -11,6 +11,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +29,7 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.impl.ModelCom;
+import org.rdfhdt.hdt.exceptions.NotFoundException;
 import org.rdfhdt.hdt.hdt.HDT;
 import org.rdfhdt.hdt.hdt.HDTManager;
 import org.rdfhdt.hdtjena.HDTGraph;
@@ -332,9 +334,27 @@ public class WimuSelection {
 		final StringBuffer results = new StringBuffer();
 		final Set<String> setResWimu = new HashSet<String>();
 		
+		
+		final Set<String> datasets = new LinkedHashSet<String>();
 		for (String uri : mUDataset.keySet()) {
-			mUDataset.get(uri).parallelStream().forEach( ds -> { 
-			//for (String ds : mUDataset.get(uri)) {
+			mUDataset.get(uri).parallelStream().forEach( ds -> {
+				datasets.add(ds);
+			});
+		}
+		
+		Set<String> dsRemoved = null;
+		try {
+			dsRemoved = ClusterKmeans.identifyDuplicates(datasets);
+		} catch (NotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		System.out.println("#Datasets duplicated: " + dsRemoved.size());
+		datasets.removeAll(dsRemoved);
+		
+//		for (String uri : mUDataset.keySet()) {
+//			mUDataset.get(uri).parallelStream().forEach( ds -> { 
+		datasets.parallelStream().forEach( ds -> {
 				ret.setBestDataset(ds);
 				if ((ds != null) && ds.contains("dbpedia")) {
 
@@ -408,9 +428,7 @@ public class WimuSelection {
 					System.out.println("TIME-OUT-ERROR(execQueryEndPoint): " + e.getMessage());
 					return;
 				}
-			});
-			//}
-		}
+		});
 		Util.updateCount(Approach.WIMU_DUMP, setResWimu.size(),0);
 		if(setResWimu.size() > 0) {
 			for (String rTriple : setResWimu) {
