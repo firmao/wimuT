@@ -5,21 +5,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.impl.ModelCom;
-import org.apache.lucene.analysis.util.CharArrayMap.EntrySet;
 import org.rdfhdt.hdt.dictionary.Dictionary;
 import org.rdfhdt.hdt.exceptions.NotFoundException;
 import org.rdfhdt.hdt.hdt.HDT;
@@ -27,7 +21,6 @@ import org.rdfhdt.hdt.hdt.HDTManager;
 import org.rdfhdt.hdt.header.Header;
 import org.rdfhdt.hdt.triples.IteratorTripleString;
 import org.rdfhdt.hdt.triples.TripleString;
-import org.rdfhdt.hdtjena.HDTGraph;
 
 public class ClusterKmeans {
 	public static final Map<String, String> mDatasetCode = new HashMap<String, String>();
@@ -35,11 +28,13 @@ public class ClusterKmeans {
 	public static final Map<String, Integer> mPropOccur = new HashMap<String, Integer>();
 	private static final Map<String, Map<String, Integer>> mDsPropOccur = new HashMap<String, Map<String, Integer>>();
 	public static final Set<String> dsError = new LinkedHashSet<String>();
+	public static final Set<String> setDuplicates = new LinkedHashSet<String>();
+	public static final Set<String> setDsToSkip = new LinkedHashSet<String>();
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, NotFoundException {
 
 		Set<String> datasets = new LinkedHashSet<String>();
-		datasets.addAll(getDatasets(new File("dirHDT"), 900));
+		datasets.addAll(getDatasets(new File("dirHDT"), 400));
 		// datasets.add("http://dbpedia.org/sparql");
 		// datasets.add("http://lod2.openlinksw.com/sparql");
 		// datasets.add("https://query.wikidata.org/");
@@ -52,12 +47,61 @@ public class ClusterKmeans {
 		// File fOnto = OntologyMatching.generateMatchFile(datasets);
 		long start = System.currentTimeMillis();
 		// generateFileKMeans(datasets);
-		generateFileArff(datasets);
+		Set<String> clusterCandidates = generateFileArff(datasets);
 		long total = System.currentTimeMillis() - start;
 		// System.out.println("FINISHED in " + TimeUnit.MILLISECONDS.toMinutes(total) +
 		// " minutes");
-		System.out.println("FINISHED in " + total + " milleseconds");
+
+		System.out.println("datasets: " + datasets.size());
+		System.out.println("clusterCandidates: " + clusterCandidates.size());
 		System.out.println("Datasets with error: " + dsError.size());
+		System.out.println("FINISHED in " + TimeUnit.MILLISECONDS.toSeconds(total) + " seconds");
+		System.out.println("Datasets\tChunks\tDuplicatesToSkip\tDuplicatesToAdd\tErrors\tTime(s)");
+		System.out.println(datasets.size() + "\t" + clusterCandidates.size() + "\t" + setDsToSkip.size() + "\t"
+				+ setDuplicates.size() + "\t" + dsError.size() + "\t" + TimeUnit.MILLISECONDS.toSeconds(total));
+		// generateFile(setDsToSkip, "duplicates.txt");
+		deleteFiles();
+	}
+
+	/*
+	 * Return the datasets not duplicated
+	 */
+	private static void separateDuplicates(Set<String> duplicates) throws IOException, NotFoundException {
+		Set<String> setLines = new LinkedHashSet<String>();
+		for (String ds : duplicates) {
+			if (!dsError.contains(ds)) {
+				try {
+					String hMetadata = getMetadataHDT(ds);
+					if (!setLines.add(hMetadata)) {
+						setDsToSkip.add(ds);
+					}
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+					continue;
+				}
+			}
+		}
+		System.out.println("Total Datasets duplicated:" + duplicates.size());
+		System.out.println("Datasets to skip: " + setDsToSkip.size());
+//		System.out.println("Those are the patterns repeated in the header metadata:");
+//		for (String pattern : setLines) {
+//			System.out.println(pattern);
+//		}
+
+	}
+
+	private static void deleteFiles() {
+		Set<File> files = new LinkedHashSet<File>();
+		files.add(new File("Dataset_code.tsv"));
+		files.add(new File("dense_ClusterKMeans.arff"));
+		files.add(new File("Property_code.tsv"));
+		files.add(new File("chunks.txt"));
+		files.add(new File("duplicates.txt"));
+		files.add(new File("sparse_ClusterKMeans.tsv"));
+		files.add(new File("filesToAdd.txt"));
+		for (File file : files) {
+			file.delete();
+		}
 	}
 
 	private static Set<String> getDatasets(File file, int limit) {
@@ -147,12 +191,13 @@ public class ClusterKmeans {
 		// plotGraphKNN(fileName);
 	}
 
-	private static void generateFileArff(Set<String> datasets) throws IOException {
+	private static Set<String> generateFileArff(Set<String> datasets) throws IOException, NotFoundException {
 		String fileName = "dense_ClusterKMeans.arff";
 		String dataset_code_file = "Dataset_code.tsv";
 		String prop_code_file = "Property_code.tsv";
 		String prop_occur_file = "sparse_ClusterKMeans.tsv";
-		String fileClusterCandidate = "clusterCandidates.txt";
+		String fileChunks = "chunks.txt";
+		String fileDuplicates = "duplicates.txt";
 		String sep = ",";
 
 		PrintWriter writer = new PrintWriter(fileName, "UTF-8");
@@ -225,9 +270,16 @@ public class ClusterKmeans {
 		writer.close();
 		generateFile(mDatasetCode, dataset_code_file);
 		generateFile(mPropertyCode, prop_code_file);
-		generateFile(setClusterCandidate, fileClusterCandidate);
 		generateFileMprop(mDsPropOccur, prop_occur_file);
+
+		separateDuplicates(setDuplicates);
+		setClusterCandidate.removeAll(setDuplicates);
+		System.out.println("Datasets with duplicates: " + setDuplicates.size());
+		// generateFile(setClusterCandidate, fileChunks);
+		setDuplicates.removeAll(setDsToSkip);
+		// generateFile(setDuplicates, "filesToAdd.txt");
 		// plotGraphKNN(fileName);
+		return setClusterCandidate;
 	}
 
 	private static void loadMaps(String mFile) throws IOException {
@@ -276,6 +328,7 @@ public class ClusterKmeans {
 		PrintWriter writer = new PrintWriter(fileName, "UTF-8");
 
 		if (fileName.toLowerCase().startsWith("dataset")) {
+			Set<String> setLines = new LinkedHashSet<String>();
 			writer.println("Name\tcode\tnumTriples\tbaseURI\tdicNumElem\tnProp");
 			for (Entry<String, String> entry : mapCode.entrySet()) {
 				String ds = entry.getKey();
@@ -286,8 +339,15 @@ public class ClusterKmeans {
 					System.err.println("Dataset Error: " + ds);
 //					dsError.add(ds);
 				}
+				if (setLines.contains(statistics)) {
+					setDuplicates.add(ds);
+				} else {
+					setLines.add(statistics);
+				}
+
 				writer.println(ds + "\t" + entry.getValue() + statistics);
 			}
+			System.out.println("testing:" + setDuplicates.size());
 		} else {
 			for (Entry<String, String> entry : mapCode.entrySet()) {
 				writer.println(entry.getKey() + "\t" + entry.getValue());
@@ -307,31 +367,46 @@ public class ClusterKmeans {
 
 	private static String getMetadataHDT(String ds) throws IOException, NotFoundException {
 		StringBuffer sbRet = new StringBuffer();
-
-		File file = new File(ds);
-		HDT hdt = HDTManager.mapHDT(file.getAbsolutePath(), null);
-		Dictionary dic = hdt.getDictionary();
-		long dicNumElem = dic.getNumberOfElements();
-		Header header = hdt.getHeader();
-		IteratorTripleString it = header.search("", "http://rdfs.org/ns/void#triples", "");
-		String numberTriples = null;
-		while (it.hasNext()) {
-			TripleString ts = it.next();
-			numberTriples = ts.getObject().toString();
+		HDT hdt = null;
+		File file = null;
+		try {
+			file = new File(ds);
+			if (!file.exists()) {
+				return null;
+			}
+			hdt = HDTManager.mapHDT(file.getAbsolutePath(), null);
+			Dictionary dic = hdt.getDictionary();
+			long dicNumElem = dic.getNumberOfElements();
+			Header header = hdt.getHeader();
+			IteratorTripleString it = header.search("", "http://rdfs.org/ns/void#triples", "");
+			String numberTriples = null;
+			while (it.hasNext()) {
+				TripleString ts = it.next();
+				numberTriples = ts.getObject().toString();
+			}
+			it = header.search("", "http://rdfs.org/ns/void#properties", "");
+			String nProp = null;
+			while (it.hasNext()) {
+				TripleString ts = it.next();
+				nProp = ts.getObject().toString();
+			}
+			// int numberTriples = header.getNumberOfElements();
+			String baseURI = header.getBaseURI().toString();
+			sbRet.append("\t" + numberTriples);
+			sbRet.append("\t" + baseURI);
+			sbRet.append("\t" + dicNumElem);
+			sbRet.append("\t" + nProp);
+		} catch (Exception e) {
+			if(!e.getMessage().contains("Adjacency list")) {
+				//e.printStackTrace();
+				//System.gc();
+			}
+		} finally {
+			// file.delete();
+			if (hdt != null) {
+				hdt.close();
+			}
 		}
-		it = header.search("", "http://rdfs.org/ns/void#properties", "");
-		String nProp = null;
-		while (it.hasNext()) {
-			TripleString ts = it.next();
-			nProp = ts.getObject().toString();
-		}
-		// int numberTriples = header.getNumberOfElements();
-		String baseURI = header.getBaseURI().toString();
-		sbRet.append("\t" + numberTriples);
-		sbRet.append("\t" + baseURI);
-		sbRet.append("\t" + dicNumElem);
-		sbRet.append("\t" + nProp);
-
 		return sbRet.toString();
 	}
 
