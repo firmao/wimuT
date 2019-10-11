@@ -22,3 +22,5 @@ A prototype is available here (here)[https://w3id.org/wimuq/]
 
 About the code:
 The main class is 'src/org/wimu/datasetselection/parallelv1/MainParallelv1.java'
+
+A preprint of the accepted paper is available (here)[https://www.researchgate.net/profile/Andre_Valdestilhas/publication/335988000_More_Complete_Resultset_Retrieval_from_Large_Heterogeneous_RDF_Sources/links/5d906d9292851c33e9469ea7/More-Complete-Resultset-Retrieval-from-Large-Heterogeneous-RDF-Sources.pdf] to appear on K-CAP 2019.
