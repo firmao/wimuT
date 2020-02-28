@@ -25,3 +25,13 @@ The main class is 'src/org/wimu/datasetselection/parallelv1/MainParallelv1.java'
 
 
 (Paper accepted at K-CAP 2019)[https://doi.org/10.1145/3360901.3364436].
+
+```
+@inproceedings{valdestilhas2019more,
+  title={More Complete Resultset Retrieval from Large Heterogeneous RDF Sources},
+  author={Valdestilhas, Andr{\'e} and Soru, Tommaso and Saleem, Muhammad},
+  booktitle={Proceedings of the 10th International Conference on Knowledge Capture},
+  pages={223--230},
+  year={2019}
+}
+```
