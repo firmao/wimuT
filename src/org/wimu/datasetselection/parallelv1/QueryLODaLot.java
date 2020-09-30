@@ -7,8 +7,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.jena.query.QueryExecutionFactory;
@@ -22,11 +25,15 @@ import org.apache.jena.vocabulary.RDF;
 
 public class QueryLODaLot {
 
-	public static void main(String[] args) throws IOException {
+	public static final String NODE_DIR = "/usr/bin/node";
+	public static String LDF_CLIENT = "/media/andre/DATA/comunica/Client.js/bin/ldf-client";
+	public static final String FRAGMENTS_HOST = "https://api.krr.triply.cc/datasets/krr/lod-a-lot/fragments";
+	
+	public static void main(String[] args) throws IOException, InterruptedException {
 		long start = System.currentTimeMillis();
 		//String query = "SELECT DISTINCT ?s ?p	WHERE { <http://dbpedia.org/resource/Leipzig> ?s ?p }";
-		String query = "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" + 
-				"Select ?s ?o where { ?s owl:sameAs ?o }";
+		//String query = "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" + 
+		//		"Select ?s ?o where { ?s owl:sameAs ?o }";
 
 //		String query = "SELECT DISTINCT  ?subject ?predicate ?object\n" + 
 //				"WHERE\n" + 
@@ -55,49 +62,67 @@ public class QueryLODaLot {
 //				"  { :Peugeot ?b ?c .\n" + 
 //				"    ?a foaf:name \"Peugeot S.A.\"@en\n" + 
 //				"  }";
-//		String query = "select ?o2 where {\n" + 
-//				"<http://dbpedia.org/resource/Germany> <http://dbpedia.org/ontology/capital> ?o .\n" + 
-//				"?o <http://dbpedia.org/ontology/populationTotal> ?o2\n" + 
-//				"}";
+		String query = "select ?o2 where {\n" + 
+				"<http://dbpedia.org/resource/Germany> <http://dbpedia.org/ontology/capital> ?o .\n" + 
+				"?o <http://dbpedia.org/ontology/populationTotal> ?o2\n" + 
+				"}";
 		
-		Set<String> res = execQuery(query);		
+		
+		Set<String> res = getFromLDFragments(FRAGMENTS_HOST, query, NODE_DIR, LDF_CLIENT);		
 		long totalTime = System.currentTimeMillis() - start;
 		File f = writeNtFile(res, "retTriplesLODaLOT.nt");
 		System.out.println("File generated: " + f.getAbsolutePath());
 		System.out.println("TotalTime: " + totalTime);
 	}
 
-	public static Set<String>  execQuery(String qSparql) throws IOException {
-		long start = System.currentTimeMillis();
-		Set<String> ret = new HashSet<String>();
-		Set<String> triples = new HashSet<String>();
-		Set<String> uris = Util.extractUrls(qSparql);
-		System.out.println("Querying https://hdt.lod.labs.vu.nl with all results");
-		for (String uri : uris) {
-			Set<String> cbd = getCBD_LOD_a_lot(uri);
-			triples.addAll(cbd);
+	/**
+	 * @param fragmentsHost The host containing the LDFragments, i.g., https://api.krr.triply.cc/datasets/krr/lod-a-lot/fragments
+	 * @param sparql Can be a text containing the sparql query or a path to a file.sparql containing the query
+	 * @param nodeDir The path where node.js are installed, i.g. /usr/local/bin/node
+	 * @param ldfClient The path to the LDFragments client, i.g. Client.js/bin/ldf-client
+	 * @return The results from the sparql query in JSON format
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static Set<String> getFromLDFragments(String fragmentsHost, String sparql, String nodeDir, String ldfClient) throws IOException, InterruptedException {
+		File file = new File("/media/andre/DATA/comunica/Client.js/bin/");
+		if(!file.isDirectory()) {
+			System.out.println("YOU ARE RUNNING WIMUQ ON THE SERVER !!!!");
+			ldfClient = "/media/andre/Seagate/Client.js/bin/ldf-client";
+		} else {
+			System.out.println("YOU ARE RUNNING WIMUQ LOCALLY !!!!");
 		}
-		System.out.println("Including in Jena: " + triples.size());
-		ret.addAll(executeQueryJena(qSparql, triples));
-		if(ret.size() > 0) {System.out.println("mAppRes sparqlALOT: " + Util.mAppRes + " ret.size=" + ret.size());}
 		
-		long totalTime = System.currentTimeMillis() - start;
-		Util.updateCount(Approach.SPARQL_A_LOT, ret.size(), totalTime);
+		Set<String> ret = new LinkedHashSet<String>();
+		List<String> commands = new ArrayList<String>();
+        commands.add(nodeDir);
+        //Add arguments
+        commands.add(ldfClient);
+        commands.add(fragmentsHost);
+        //commands.add("Client.js/queries/artists-york.sparql");
+        commands.add(sparql);
+        //System.out.println(commands);
+
+        //Run macro on target
+        ProcessBuilder pb = new ProcessBuilder(commands);
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+
+        //Read output
+        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line = null, previous = null;
+        while ((line = br.readLine()) != null)
+            if (!line.equals(previous)) {
+                previous = line;
+                ret.add(line);
+            }
+
+        //Check result
+        if (process.waitFor() != 0) {
+            System.err.println("ERROR AT ResultsFromLDFragments.getFromLDFragments()");
+        }
 		
 		return ret;
-	}
-	
-	public static boolean execQuery(String qSparql, boolean onlyCheckIfQueryWorks) throws IOException {
-		Set<String> triples = new HashSet<String>();
-		Set<String> uris = Util.extractUrls(qSparql);
-		System.out.println("Querying https://hdt.lod.labs.vu.nl ### OLD ###");
-		for (String uri : uris) {
-			//Set<String> cbd = getCBD_LOD_a_lot(uri);
-			Set<String> cbd = getCBD_LOD_a_lot_old(uri);
-			triples.addAll(cbd);
-		}
-		
-		return (triples.size() > 0);
 	}
 	
 	private static Set<String> executeQueryJena(String qSparql, Set<String> triples) throws IOException {
@@ -180,6 +205,7 @@ public class QueryLODaLot {
 								+ field + "=%3C" + URLEncoder.encode(uri,"UTF-8") + "%3E&page_size=" + pageSize + "&page=" + page);
 				BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
 				
+				HashSet<String> instances = new HashSet<>();
 				String triple;
 				while ((triple = in.readLine()) != null) {
 					String sTriple [] = triple.split(" ");
@@ -188,6 +214,20 @@ public class QueryLODaLot {
 					String o = sTriple[2];
 					//System.out.println(field + "-: " + triple);
 					//ret.add(triple.replaceAll("<https://hdt.lod.labs.vu.nl/graph/LOD-a-lot> ", ""));
+					if (p.endsWith("sameAs"))
+						continue;
+					if (o.startsWith("http://lodlaundromat.org/.well-known/genid"))
+						continue;
+					if (s.startsWith("http://lodlaundromat.org/.well-known/genid"))
+						continue;
+					
+					if (p.contains(RDF.type.getURI())) {
+						boolean firstVisit = instances.add(s);
+						if (firstVisit){
+							triple = s + " <" + RDF.type.toString() + "> <" + OWL.Thing.toString() + "> .";
+							ret.add(triple);
+						}
+					}
 					
 					ret.add(triple.replaceAll("<https://hdt.lod.labs.vu.nl/graph/LOD-a-lot> ", ""));
 				}
@@ -198,5 +238,9 @@ public class QueryLODaLot {
 			}
 		} while (true);
 		return ret;
+	}
+
+	public static Set<String> execQuery(String query) throws IOException, InterruptedException {
+		return getFromLDFragments(FRAGMENTS_HOST, query, NODE_DIR, LDF_CLIENT);
 	}
 }
